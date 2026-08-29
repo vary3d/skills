@@ -1,0 +1,27 @@
+{
+  "format": "vary3d.variants",
+  "version": 1,
+  "modelHint": { "slug": "m5-flange" },
+  "files": {
+    "model.scad": [
+      {
+        "name": "M5",
+        "description": "Clearance for M5 hardware.",
+        "cover": "covers/m5.png",
+        "params": {
+          "bolt_clearance_dia": 5.3,
+          "pcd": 28
+        }
+      },
+      {
+        "name": "M4",
+        "description": "Clearance for M4 hardware.",
+        "cover": "covers/m4.png",
+        "params": {
+          "bolt_clearance_dia": 4.3,
+          "pcd": 24
+        }
+      }
+    ]
+  }
+}

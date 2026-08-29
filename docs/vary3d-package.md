@@ -1,0 +1,124 @@
+# Vary3D model package
+
+> Human guide. Runtime instructions: [skills/vary3d-package/SKILL.md](../skills/vary3d-package/SKILL.md).
+
+Turn an **existing** Customizer `.scad` into a folder that [vary3d.com](https://vary3d.com) **Import from folder** can map into a draft. This skill **does not invent geometry** and **does not upload**. If there is no working `.scad` yet, use [openscad-customizer](openscad-customizer.md) first.
+
+Install:
+
+```bash
+npx skills add vary3d/skills@vary3d-package
+```
+
+## What it is for
+
+| Use this skill | Not this skill |
+|---|---|
+| Wrap `.scad` → `packages/<slug>/` + `info.json` | Design a part from scratch → openscad-customizer |
+| Covers, presets, fork attribution | Upload or publish (user does that on the site) |
+| Normalize comments / enums for the site panel | Change outside shape (>1 mm bbox or ~5% volume) |
+
+Requires **OpenSCAD CLI** and **Python 3** (same as openscad-customizer).
+
+Runtime authority: [references/package.md](../skills/vary3d-package/references/package.md) and [examples/m5-flange/](../skills/vary3d-package/examples/m5-flange/). Human spec docs: [vary3d/spec](https://github.com/vary3d/spec) — do not fetch that at runtime; copy deltas into `package.md` and bump the skill.
+
+## Core idea
+
+**Packaging is not redesign.** Copy the source tree, tidy metadata, prove the mesh is unchanged, then add listing files.
+
+1. **Baseline** the source (bbox, volume, params).
+2. **Copy** the include/use closure into `packages/<slug>/` (do not edit `models/` unless the user asked in-place).
+3. **Tidy** Customizer copy without moving geometry (enums, `_color`, snake_case renames with preset key updates).
+4. **Validate** shape + JSON + covers.
+5. **Deliver** the folder path; user imports on vary3d.com.
+
+Design rules that matter most:
+
+- **Shape unchanged** — packaged `model.scad` must match source bbox within **±1 mm**; volume within ~**5%**.
+- **Keep existing slider labels** — do not rewrite local-language labels to English; the site translates after publish. New copy defaults to English unless the user asked otherwise.
+- **Description leads** — cards show the first sentence or two; put object + mate/feature first. More sentences are allowed (≤800).
+- **Tags are search axes** — about 3, max 5: object, mate, distinctive feature; scene only if the object name is generic. Do not pad.
+- **Never invent `parentModelId`** or other server fields.
+- **STL-only entry is rejected** — need OpenSCAD source.
+- **Do not invent a split** — if the source has a `part` enum, keep it; `info.print` lists Print N× per token. Do not add `variants.json` presets that only switch `part`.
+
+## Workflow
+
+```mermaid
+flowchart TD
+    A[Existing .scad] --> B{Compiles?}
+    B -->|no| B1[Stop → openscad-customizer]
+    B -->|yes| C[Baseline: validate.py + extract-params.py]
+
+    C --> D[Copy closure → packages/slug/]
+    D --> E[Tidy: comments, yes/no enums, colors]
+    E --> F[Write info.json + optional variants.json]
+
+    F --> G[validate.py on packaged entry --expect baseline]
+    G -->|fail| E
+    G -->|pass| H[cover.py + cover-variants.py]
+    H --> I[validate-info.py + validate-variants.py]
+    I --> J[Deliver packages/slug/]
+    J --> K[User: Import from folder on vary3d.com]
+```
+
+### Output layout
+
+```text
+packages/<slug>/
+  model.scad          # entry (required)
+  info.json           # listing seed (required to publish)
+  cover.png           # 4:3 from cover.py
+  variants.json       # when ≥2 useful presets
+  covers/<preset>.png
+  params.scad         # optional, multi-file only
+  LICENSE             # forks: upstream text, unmodified
+  ORIGIN.md           # forks: Forked from, what changed
+```
+
+Do **not** ship `.openscad-iter/`, `.openscad-preview/`, `brief.json`, `plan.json`, cached STL, or `.DS_Store`.
+
+### Shape check
+
+```bash
+# Source
+python3 scripts/validate.py path/to/original.scad
+
+# Packaged — same size ±1 mm
+python3 scripts/validate.py packages/<slug>/model.scad --expect X Y Z --tol 1
+```
+
+### Listing and covers
+
+```bash
+python3 scripts/validate-info.py packages/<slug>/info.json
+python3 scripts/validate-variants.py packages/<slug>/variants.json   # if presets
+python3 scripts/cover.py packages/<slug>/model.scad
+python3 scripts/cover-variants.py packages/<slug>/variants.json
+```
+
+First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`).
+
+Printable parts: three lines under `info.print` (settings, orientation, why). Split models: include Print N× per `part` token. See [references/print.md](../skills/vary3d-package/references/print.md).
+
+## Two skills together
+
+```text
+User: "Design an M5 flange"
+  → openscad-customizer → models/m5-flange/model.scad
+
+User: "Make it importable on Vary3D with M4/M5 presets"
+  → vary3d-package → packages/m5-flange/
+  → user imports on vary3d.com
+```
+
+## Further reading
+
+| Topic | File |
+|---|---|
+| Runtime entry | [SKILL.md](../skills/vary3d-package/SKILL.md) |
+| Copy without shape change | [references/normalize.md](../skills/vary3d-package/references/normalize.md) |
+| info.json, covers, ORIGIN | [references/package.md](../skills/vary3d-package/references/package.md) |
+| Print in info.json | [references/print.md](../skills/vary3d-package/references/print.md) |
+| Examples | [examples.md](../skills/vary3d-package/examples.md) |
+| Publish spec | [vary3d/spec](https://github.com/vary3d/spec) |

@@ -1,0 +1,18 @@
+scripts/__pycache__/
+*.pyc
+.DS_Store
+**/.openscad-iter/
+**/.openscad-preview/
+**/.vary3d-iter/
+
+# Local `npx skills add` install (project-level)
+.agents/
+.cursor/skills/
+.claude/skills/
+.codex/skills/
+skills-lock.json
+
+# Design / import working copies (not the published skill tree)
+/models/
+/packages/
+/tests/
