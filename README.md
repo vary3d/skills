@@ -1,5 +1,8 @@
 # Vary3D Skills
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform: macOS | Linux | Windows](https://img.shields.io/badge/Platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)](README.md)
+
 Official **agent skills**: desktop OpenSCAD Customizer, and an optional folder layout for [vary3d.com](https://vary3d.com).
 
 This repository is not the website, not an STL dump, and not an OpenSCAD include library (BOSL2 / MCAD). Skills do not upload models for you.

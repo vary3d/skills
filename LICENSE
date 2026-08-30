@@ -23,7 +23,7 @@ SOFTWARE.
 ---
 
 Third-party: the plastic self-tap hole geometry in
-skills/skills/openscad-customizer/examples/selftap.scad follows OpenEng (MIT),
+skills/openscad-customizer/examples/selftap.scad follows OpenEng (MIT),
 https://gitlab.com/bath_open_instrumentation_group/openeng
 (Julian Stirling and Richard Bowman, Bath Open Instrumentation Group).
 The OpenEng MIT notice applies to that snippet.

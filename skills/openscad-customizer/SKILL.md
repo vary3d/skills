@@ -8,6 +8,7 @@ description: >-
   STL, 3D-printable parts, brackets, enclosures, flanges, mounts, washers,
   or an in-place edit of an existing .scad. Also when they attach a product
   photo, CAD three-view, screenshot, or engineering drawing to copy.
+version: "1.20"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH.
 metadata:

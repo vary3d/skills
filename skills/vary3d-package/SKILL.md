@@ -6,6 +6,7 @@ description: >-
   geometry. Use when the user asks to import to Vary3D, Import from folder,
   publish a model folder, info.json, variants.json, Forked from,
   or normalize an existing .scad into the spec layout.
+version: "1.12"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH. First cover render may write a Vary3D color scheme into the local OpenSCAD config directory.
 metadata:
