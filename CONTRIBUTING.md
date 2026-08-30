@@ -6,7 +6,7 @@ This repository ships **agent skills**. Each skill folder is self-contained so `
 
 Each skill carries its **own copy** of `scripts/`. When you change a shared script, mirror the change into the other skill:
 
-`find-openscad.py`, `install-portable.py`, `preview.py`, `multi-preview.py`, `outline.py`, `bbox.py`, `extract-params.py`, `override-params.py`, `validate.py`, `section.py`, `check-skill-version.py`
+`find-openscad.py`, `find_openscad_lib.py`, `install-portable.py`, `preview.py`, `multi-preview.py`, `outline.py`, `bbox.py`, `extract-params.py`, `override-params.py`, `validate.py`, `section.py`, `open-gui.py`, `check-skill-version.py`
 
 **Cross-platform:** the real implementations are `*.py` and run on macOS, Linux, and native Windows (no WSL / Git Bash). The `*.sh` files are thin compatibility shims that `exec python3` the matching `.py`. Keep both in sync.
 
@@ -16,9 +16,9 @@ Each skill carries its **own copy** of `scripts/`. When you change a shared scri
 
 ## Versions
 
-Each skill folder has a one-line `VERSION` file (same number as `metadata.version` in `SKILL.md`). The optional soft check (`VARY3D_SKILL_CHECK=1`, or when the user asks) runs `scripts/check-skill-version.py`, which compares those one-line files. It is not a hard gate and never auto-updates; it skips quietly when the network is unreachable. Do not fetch remote `SKILL.md`.
+Each skill folder has a one-line `VERSION` file (same number as top-level `version` and `metadata.version` in `SKILL.md`). The optional soft check (`VARY3D_SKILL_CHECK=1`, or when the user asks) runs `scripts/check-skill-version.py`, which compares those one-line files. It is not a hard gate and never auto-updates; it skips quietly when the network is unreachable. Do not fetch remote `SKILL.md`.
 
-**Bump `VERSION` and `metadata.version` together** on behavior changes so the soft check stays meaningful. Note the bump in [CHANGELOG.md](CHANGELOG.md).
+**Bump `VERSION`, top-level `version`, and `metadata.version` together** on behavior changes so the soft check and ClawdHub stay meaningful. Note the bump in [CHANGELOG.md](CHANGELOG.md).
 
 When [vary3d/spec](https://github.com/vary3d/spec) changes a field the packager must follow, **copy the delta into `vary3d-package/references/package.md`** and bump that skill. Runtime skills must not fetch the spec.
 

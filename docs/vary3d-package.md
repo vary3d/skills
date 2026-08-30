@@ -29,12 +29,13 @@ Runtime authority: [references/package.md](../skills/vary3d-package/references/p
 1. **Baseline** the source (bbox, volume, params).
 2. **Copy** the include/use closure into `packages/<slug>/` (do not edit `models/` unless the user asked in-place).
 3. **Tidy** Customizer copy without moving geometry (enums, `_color`, snake_case renames with preset key updates).
-4. **Validate** shape + JSON + covers.
+4. **Validate** shape + knobs + JSON, then covers.
 5. **Deliver** the folder path; user imports on vary3d.com.
 
 Design rules that matter most:
 
-- **Shape unchanged** — packaged `model.scad` must match source bbox within **±1 mm**; volume within ~**5%**.
+- **Shape unchanged** — packaged `model.scad` must match source bbox within **±1 mm** (`validate.py --expect … --tol 1`). Compare `volume_mm3` from the two JSON outputs by eye (~**5%**); that is not a `validate.py` flag.
+- **Few knobs** — `extract-params.py` lists only intended knobs and prints **no `warnings`**.
 - **Keep existing slider labels** — do not rewrite local-language labels to English; the site translates after publish. New copy defaults to English unless the user asked otherwise.
 - **Description leads** — cards show the first sentence or two; put object + mate/feature first. More sentences are allowed (≤800).
 - **Tags are search axes** — about 3, max 5: object, mate, distinctive feature; scene only if the object name is generic. Do not pad.
@@ -56,9 +57,11 @@ flowchart TD
 
     F --> G[validate.py on packaged entry --expect baseline]
     G -->|fail| E
-    G -->|pass| H[cover.py + cover-variants.py]
-    H --> I[validate-info.py + validate-variants.py]
-    I --> J[Deliver packages/slug/]
+    G -->|pass| P[extract-params.py: no warnings]
+    P -->|warnings| E
+    P -->|ok| I[validate-info.py + validate-variants.py]
+    I --> H[cover.py + cover-variants.py]
+    H --> J[Deliver packages/slug/]
     J --> K[User: Import from folder on vary3d.com]
 ```
 
@@ -76,30 +79,39 @@ packages/<slug>/
   ORIGIN.md           # forks: Forked from, what changed
 ```
 
-Do **not** ship `.openscad-iter/`, `.openscad-preview/`, `brief.json`, `plan.json`, cached STL, or `.DS_Store`.
+Do **not** ship `.openscad-iter/`, `.openscad-preview/`, `.vary3d-iter/`, `brief.json`, `plan.json`, cached STL, or `.DS_Store`. Extra `.scad` pulled in by `use` / `include` stays in the bundle.
 
 ### Shape check
 
+`SKILL_ROOT` is the skill folder (the directory that contains `SKILL.md`). `--expect X Y Z` is `size` from the source JSON. Compare `volume_mm3` yourself (~5%).
+
 ```bash
 # Source
-python3 scripts/validate.py path/to/original.scad
+python3 "$SKILL_ROOT/scripts/validate.py" path/to/original.scad
 
 # Packaged — same size ±1 mm
-python3 scripts/validate.py packages/<slug>/model.scad --expect X Y Z --tol 1
+python3 "$SKILL_ROOT/scripts/validate.py" packages/<slug>/model.scad --expect X Y Z --tol 1
+
+# Top-level knobs — no warnings before Done
+python3 "$SKILL_ROOT/scripts/extract-params.py" packages/<slug>/model.scad
 ```
 
 ### Listing and covers
 
+`validate-info.py` does not require `cover` (covers are rendered after). Add `cover.png` before the user publishes.
+
 ```bash
-python3 scripts/validate-info.py packages/<slug>/info.json
-python3 scripts/validate-variants.py packages/<slug>/variants.json   # if presets
-python3 scripts/cover.py packages/<slug>/model.scad
-python3 scripts/cover-variants.py packages/<slug>/variants.json
+python3 "$SKILL_ROOT/scripts/validate-info.py" packages/<slug>/info.json
+python3 "$SKILL_ROOT/scripts/validate-variants.py" packages/<slug>/variants.json   # if presets
+python3 "$SKILL_ROOT/scripts/cover.py" packages/<slug>/model.scad
+python3 "$SKILL_ROOT/scripts/cover-variants.py" packages/<slug>/variants.json
 ```
 
-First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`).
+First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`). Open `cover.png`. If there are many preset covers, open at least the default plus the two that change the silhouette most.
 
-Printable parts: three lines under `info.print` (settings, orientation, why). Split models: include Print N× per `part` token. See [references/print.md](../skills/vary3d-package/references/print.md).
+Printable parts: three lines under `info.print` (settings, orientation, why). Split models: include Print N× per `part` token; `all` is preview only; no preset per token. See [references/print.md](../skills/vary3d-package/references/print.md).
+
+Forks: keep upstream `LICENSE`; write `ORIGIN.md`; fill source fields. Original tree `git status` stays clean unless the user asked in-place.
 
 ## Two skills together
 

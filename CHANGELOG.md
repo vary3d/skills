@@ -1,6 +1,10 @@
 # Changelog
 
-Skill versions live in each `SKILL.md` under `metadata.version` and the sibling `VERSION` file. This file summarizes user-visible changes.
+Skill versions live in each `SKILL.md` (`version` and `metadata.version`) and the sibling `VERSION` file. This file summarizes user-visible changes.
+
+## Docs — 2026-08-30
+
+- Human guides (`docs/*.md`) aligned with SKILL.md gates and verify commands: `--expect` is not always; `extract-params.py` before six views; package JSON validators before `cover.py`; `$SKILL_ROOT` on copy-paste commands.
 
 ## openscad-customizer 1.20 / vary3d-package 1.12 — 2026-08-29
 

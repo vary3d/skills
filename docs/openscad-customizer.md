@@ -34,7 +34,7 @@ Requires **OpenSCAD CLI** and **Python 3** (macOS, Linux, native Windows — no 
 Design rules that matter most:
 
 - **Research before Brief** — parts mating to real objects or using standard parts (bearing, bolt, keycap) need real millimetres: user text, in-skill tables, or Confirm-gated candidates. Cite `sources` in `brief.json`. A product photo is not a millimetre source.
-- **Few knobs, derived rest** — millimetres in the request are defaults, not sliders. Visible cap: simple ≤ 6, complex ≤ 8. Mate holder: object sizes only; stand derived. `extract-params.py` must be warning-free before Done.
+- **Few knobs, derived rest** — millimetres in the request are defaults, not sliders. Visible cap: simple ≤ 6, complex ≤ 8. Mate holder: object sizes only; stand derived. `extract-params.py` must be warning-free **before six views** (and before Done).
 - **Files default to English**; chat follows the user’s language.
 - **Prefer no third-party library** so the GUI opens the file as-is. Inline MIT examples for gears, trapezoid threads, polyhole, teardrop, self-tap (do not `use <MCAD>`).
 - **Print: reorient, then geometry, then split, then supports.** User saying “split” is Confirm, not auto-split. If it stays one piece, **say so** (wall angle / bed face). 2–4 printable kinds → one `part` enum, default All. Split joints: derive from host wall thickness; open an assembled section through the joint ([print.md](../skills/openscad-customizer/references/print.md)).
@@ -44,7 +44,7 @@ Design rules that matter most:
 
 ```mermaid
 flowchart TD
-    A[User request] --> B{Tools OK?}
+    A[User request] --> B{find-openscad.py + python3?}
     B -->|no| B1[Stop; install OpenSCAD / Python]
     B -->|yes| Img{Attached image?}
     Img -->|photo / 3-view / drawing| Img1[Read image first<br/>topology not mm]
@@ -54,7 +54,7 @@ flowchart TD
     R -->|user gave all sizes| C{Route}
     R1 --> C
 
-    C -->|small-edit| D1[Change top-level params only]
+    C -->|small-edit| D1[Edit in place; no rewrite]
     C -->|simple| D2[Write models/slug/model.scad]
     C -->|complex| F[brief.json]
     F --> F1[Confirm: summary; recommend one-piece vs split; say so if one piece]
@@ -65,7 +65,9 @@ flowchart TD
     D1 --> E[.scad]
     D2 --> E
 
-    E --> H[validate.py: compile + bbox]
+    E --> P[extract-params.py: no warnings]
+    P -->|warnings| E
+    P -->|ok| H[validate.py: compile; complex --expect ±1 mm]
     H -->|fail| E
     H -->|pass| K[multi-preview.py → .openscad-preview/]
     K --> K1[--probe then open _probe.png]
@@ -95,7 +97,7 @@ flowchart TD
 | 1.5 **Confirm** | Skip unless they mentioned split / supports: one-piece vs split | **Show summary to user, wait for OK** |
 | 2 Plan | Skip | `plan.json` (CSG steps) |
 | 3 SCAD | Same style rules | Same style rules |
-| 4 Verify | Compile; six views; **check floating parts**; show user iso+top | Compile + bbox on the **default file**. Split: skip `--single-body` on `all`; single-body per token; extra iso per token |
+| 4 Verify | Compile; six views; **check floating parts**; show user iso+top (**and the reference** if they attached one) | Compile + bbox ±1 mm on the **default file**. If `part` exists: bbox is `all`; **skip** `--single-body` on `all`; **single-body per printable token**. One-piece complex: `--single-body` on the default file. Print-in-place: skip `--single-body`. Six views; show user iso+top (**and the reference** if they attached one) |
 
 **Research is a gate, not a shortcut.** Mating parts need real millimetres (user text, in-skill table, or Confirm-gated candidates). Cite `sources` in `brief.json` when a number did not come from the user. A photo is not a millimetre source.
 
@@ -103,32 +105,56 @@ flowchart TD
 
 ### Verification
 
-**Hard gate** — always:
+`SKILL_ROOT` is the skill folder (the directory that contains `SKILL.md`). Confirm the CLI first:
 
 ```bash
-python3 scripts/validate.py model.scad --expect X Y Z --tol 1
-# Split: skip --single-body on all; then e.g.
-# python3 scripts/validate.py model.scad --single-body --openscad-arg=-D --openscad-arg='part="lid"'
+python3 "$SKILL_ROOT/scripts/find-openscad.py"
+```
+
+**Agent gate before six views** — `extract-params.py` must print **no `warnings`** (count ceilings, deny-list names, file-scope formulas). Not a compile fail; `validate.py` still exits 0.
+
+```bash
+python3 "$SKILL_ROOT/scripts/extract-params.py" path/to/model.scad
+```
+
+**Hard gate** — compile always. **`--expect` is for complex** (assembled bbox on the default file if `part="all"`), or simple when the user gave a size. Exit 0 pass / 1 compile fail / 2 bbox miss / 3 multi-body (`--single-body` only).
+
+```bash
+python3 "$SKILL_ROOT/scripts/validate.py" path/to/model.scad
+python3 "$SKILL_ROOT/scripts/validate.py" path/to/model.scad --expect 80 80 5 --tol 1
+
+# One-piece: --single-body on the default file. Print-in-place: skip.
+# Split: skip --single-body on all; one run per printable token:
+python3 "$SKILL_ROOT/scripts/validate.py" path/to/model.scad --single-body \
+  --openscad-arg=-D --openscad-arg='part="lid"'
 ```
 
 **Soft gate** — when the CLI can render. Output must be **inside the workspace** (default `.openscad-preview/` beside the `.scad`). Many agent image viewers reject `/tmp` paths even for valid PNGs.
 
 ```bash
-python3 scripts/multi-preview.py --probe model.scad
+python3 "$SKILL_ROOT/scripts/multi-preview.py" --probe path/to/model.scad
 # → .openscad-preview/_probe.png
 
-python3 scripts/multi-preview.py model.scad
+python3 "$SKILL_ROOT/scripts/multi-preview.py" path/to/model.scad
 # → .openscad-preview/model-{iso,front,...}.png
-# Split token iso:
-# python3 scripts/preview.py model.scad .openscad-preview/lid-iso.png iso --openscad-arg=-D --openscad-arg='part="lid"'
+# Split token iso (print pose). Do not change the file default; pass -D:
+python3 "$SKILL_ROOT/scripts/preview.py" path/to/model.scad \
+  .openscad-preview/lid-iso.png iso --openscad-arg=-D --openscad-arg='part="lid"'
 ```
 
-Cavities, walls, and lid joints: `section.py --plane xz --2d` (2D is the default). Do not judge those from a `--3d` iso cutaway — it shows the remaining outer shell. If opening a PNG fails, first check the path is workspace-relative, not `/tmp`. Only then use fallback: `section.py --2d` + `outline.py`. See [references/verify.md](../skills/openscad-customizer/references/verify.md).
+Cavities, walls, and lid joints: `section.py --plane xz --2d` (2D is the default). Split: assembled section through the joint is a gate. Do not judge those from a `--3d` iso cutaway — it shows the remaining outer shell. If opening a PNG fails, first check the path is workspace-relative, not `/tmp`. Only then use fallback: `section.py --2d` + `outline.py`. See [references/verify.md](../skills/openscad-customizer/references/verify.md).
+
+If this session changed geometry ≥2 times (or complex already rendered), snapshot and compare to the previous PNGs:
+
+```bash
+python3 "$SKILL_ROOT/scripts/snapshot.py" path/to/model.scad --reason "fix hole offset" \
+  .openscad-preview/model-iso.png .openscad-preview/model-top.png
+```
 
 **Handoff** — default after Done-when:
 
 ```bash
-python3 scripts/open-gui.py model.scad
+python3 "$SKILL_ROOT/scripts/open-gui.py" path/to/model.scad
 ```
 
 Tell the user: F5 preview, Window → Customizer for sliders. **Ask in the user’s language** whether they can see it and whether the shape looks right. Do not mark Done until they say OK.
