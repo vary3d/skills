@@ -7,15 +7,18 @@ Usage: preview.py model.scad [out.png] [iso|front|back|left|right|top|bottom|cov
 from __future__ import annotations
 
 import os
+import struct
 import subprocess
 import sys
-import tempfile
+import zlib
+from math import gcd
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import find_openscad_lib  # noqa: E402
+import outline  # noqa: E402
 
 VIEWS = {
     "iso": "55,0,25",
@@ -117,6 +120,104 @@ def peel_openscad_args(argv: list[str]) -> tuple[list[str], list[str]]:
     return rest, extra
 
 
+BG_THRESH = 248
+AA_PAD = 3
+# Object AABB occupies this fraction of the limiting canvas side.
+# About 10% margin on that axis; the other axis gets more if the silhouette is not 4:3.
+FILL = 0.80
+
+
+def _is_background(r: int, g: int, b: int) -> bool:
+    return r >= BG_THRESH and g >= BG_THRESH and b >= BG_THRESH
+
+
+def _content_bbox(rows: list[bytearray], width: int, height: int):
+    minx, miny, maxx, maxy = width, height, -1, -1
+    for y, row in enumerate(rows):
+        for x in range(width):
+            i = x * 3
+            if _is_background(row[i], row[i + 1], row[i + 2]):
+                continue
+            if x < minx:
+                minx = x
+            if x > maxx:
+                maxx = x
+            if y < miny:
+                miny = y
+            if y > maxy:
+                maxy = y
+    if maxx < 0:
+        return None
+    return minx, miny, maxx, maxy
+
+
+def _canvas_size(obj_w: int, obj_h: int, img_w: int, img_h: int) -> tuple[int, int]:
+    """Same-aspect canvas (cover 4:3) with the object centered at FILL."""
+    fill = float(os.environ.get("OPENSCAD_COVER_FILL", FILL))
+    fill = min(0.92, max(0.4, fill))
+    g = gcd(img_w, img_h) or 1
+    rw, rh = img_w // g, img_h // g
+    fill_i = max(1, int(round(fill * 100)))
+    k = max(
+        (obj_w * 100 + rw * fill_i - 1) // (rw * fill_i),
+        (obj_h * 100 + rh * fill_i - 1) // (rh * fill_i),
+        1,
+    )
+    return rw * k, rh * k
+
+
+def _write_rgb_png(path: Path, width: int, height: int, rows: list[bytearray]) -> None:
+    def chunk(tag: bytes, data: bytes) -> bytes:
+        return struct.pack(">I", len(data)) + tag + data + struct.pack(
+            ">I", zlib.crc32(tag + data) & 0xFFFFFFFF
+        )
+
+    raw = bytearray()
+    for row in rows:
+        raw.append(0)
+        raw.extend(row[: width * 3])
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    path.write_bytes(
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", zlib.compress(bytes(raw), 9))
+        + chunk(b"IEND", b"")
+    )
+
+
+def tighten_png(path: Path) -> None:
+    """Place the object in the center of a same-aspect canvas (cover stays 4:3).
+
+    Not a minimum crop: the AABB fills about 80% of the limiting side so the
+    margin stays even. OpenSCAD --viewall often leaves the mesh in a corner;
+    compositing onto a new white canvas recenters it.
+    """
+    if os.environ.get("OPENSCAD_NO_CROP"):
+        return
+    width, height, raw, ctype = outline.read_png(path)
+    rows = outline.unfilter(width, height, raw, ctype)
+    bbox = _content_bbox(rows, width, height)
+    if bbox is None:
+        return
+    minx, miny, maxx, maxy = bbox
+    minx = max(0, minx - AA_PAD)
+    miny = max(0, miny - AA_PAD)
+    maxx = min(width - 1, maxx + AA_PAD)
+    maxy = min(height - 1, maxy + AA_PAD)
+    obj_w = maxx - minx + 1
+    obj_h = maxy - miny + 1
+    canvas_w, canvas_h = _canvas_size(obj_w, obj_h, width, height)
+    ox = (canvas_w - obj_w) // 2
+    oy = (canvas_h - obj_h) // 2
+    white = bytes([255, 255, 255]) * canvas_w
+    out_rows = [bytearray(white) for _ in range(canvas_h)]
+    for i in range(obj_h):
+        src = rows[miny + i][minx * 3 : (maxx + 1) * 3]
+        dest = ox * 3
+        out_rows[oy + i][dest : dest + len(src)] = src
+    _write_rgb_png(path, canvas_w, canvas_h, out_rows)
+
+
 def render(scad: Path, out: Path, view: str, extra: list[str] | None = None) -> int:
     rot = os.environ.get("OPENSCAD_ROT", VIEWS[view])
     if view == "cover":
@@ -158,6 +259,10 @@ def render(scad: Path, out: Path, view: str, extra: list[str] | None = None) -> 
         return proc.returncode or 1
     if os.environ.get("OPENSCAD_VERBOSE"):
         sys.stderr.write(log)
+    try:
+        tighten_png(out)
+    except (ValueError, OSError) as exc:
+        print(f"warning: could not tighten {out.name}: {exc}", file=sys.stderr)
     print(out)
     return 0
 

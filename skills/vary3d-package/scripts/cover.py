@@ -5,20 +5,50 @@ Usage:
   cover.py model.scad [out.png]
   cover.py model.scad [out.png] --set name=value --set x=y
   cover.py model.scad [out.png] --params-json '{"flange_length":60}'
+
+Overrides are OpenSCAD -D on the entry file (end-of-file assignment), so
+they apply to names defined in included params.scad. Do not rewrite the
+entry source: that cannot see Global keys and prepending loses to include.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
-import os
-import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(SCRIPT_DIR))
 
-import preview  # noqa: E402
+
+def _load(name: str, filename: str):
+    spec = importlib.util.spec_from_file_location(name, SCRIPT_DIR / filename)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+override_params = _load("override_params", "override-params.py")
+preview = _load("preview", "preview.py")
+
+
+def d_pairs_from_values(values: dict) -> list[str]:
+    extra: list[str] = []
+    for name, value in values.items():
+        extra += ["-D", f"{name}={override_params.scad_literal(value)}"]
+    return extra
+
+
+def parse_overrides(sets: list[str], params_json: str) -> dict:
+    overrides: dict = {}
+    if params_json:
+        loaded = json.loads(params_json)
+        if not isinstance(loaded, dict):
+            raise ValueError("params-json must be an object")
+        overrides.update(loaded)
+    for item in sets:
+        name, value = override_params.parse_set(item)
+        overrides[name] = value
+    return overrides
 
 
 def main() -> int:
@@ -51,34 +81,15 @@ def main() -> int:
     if out is None:
         out = scad.parent / "cover.png"
 
-    src = scad
-    tmpdir = None
+    extra: list[str] = []
     if sets or params_json:
-        cmd = [sys.executable, str(SCRIPT_DIR / "override-params.py"), str(scad), "-o", "@OUT@"]
-        if params_json:
-            cmd += ["--params-json", params_json]
-        for s in sets:
-            cmd += ["--set", s]
-        tmpdir = Path(tempfile.mkdtemp(prefix="vary3d-cover-"))
-        over = tmpdir / "over.scad"
-        cmd[cmd.index("@OUT@")] = str(over)
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            sys.stderr.write(proc.stderr or proc.stdout or "")
-            return proc.returncode
-        src = over
+        try:
+            extra = d_pairs_from_values(parse_overrides(sets, params_json))
+        except (json.JSONDecodeError, ValueError) as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
 
-    # Temp copies live outside the model dir; let relative include/use fall back there.
-    env_path = str(scad.parent)
-    prev = os.environ.get("OPENSCADPATH")
-    os.environ["OPENSCADPATH"] = env_path + (os.pathsep + prev if prev else "")
-    try:
-        return preview.render(src, out, "cover")
-    finally:
-        if tmpdir is not None:
-            import shutil
-
-            shutil.rmtree(tmpdir, ignore_errors=True)
+    return preview.render(scad, out, "cover", extra=extra or None)
 
 
 if __name__ == "__main__":

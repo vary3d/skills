@@ -34,7 +34,7 @@ Runtime instructions stay in each skill’s `SKILL.md` and `references/`. Guides
 
 Related repositories:
 
-- **[vary3d/spec](https://github.com/vary3d/spec)** — publish format (`info.json`, `variants.json`, Customizer comments, `params.scad`)
+- **[vary3d/spec](https://github.com/vary3d/spec)** — publish format (`info.json`, `variants.json`, Customizer comments, `params.scad`, package `README.md`)
 - **[vary3d/library](https://github.com/vary3d/library)** — catalog models
 
 Forks keep the **upstream license**. Fill Forked from; do not rebrand the design as Vary3D.

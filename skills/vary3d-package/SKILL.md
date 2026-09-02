@@ -2,16 +2,16 @@
 name: vary3d-package
 description: >-
   Wrap existing OpenSCAD into a Vary3D importable folder: info.json,
-  variants.json, cover images, LICENSE, and ORIGIN.md. Does not invent
+  variants.json, cover images, README.md, LICENSE, and ORIGIN.md. Does not invent
   geometry. Use when the user asks to import to Vary3D, Import from folder,
   publish a model folder, info.json, variants.json, Forked from,
   or normalize an existing .scad into the spec layout.
-version: "1.12"
+version: "1.22"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH. First cover render may write a Vary3D color scheme into the local OpenSCAD config directory.
 metadata:
   author: vary3d
-  version: "1.12"
+  version: "1.22"
   related_skills: vary3d/skills@openscad-customizer
 ---
 
@@ -31,7 +31,7 @@ Optional soft check (not a gate): if the user asks whether this skill is current
 ## Language
 
 - **Chat** follows the user’s language.
-- **New file copy** (`info.json` name/description/tags, variant titles, Customizer groups and slider `//` lines you add) defaults to **English**. Switch only when the user **explicitly** asks (e.g. “listing in Japanese”, or any other language they name). Chatting in another language is **not** that request.
+- **New file copy** (`info.json` name/description/tags, variant titles, Customizer groups and slider `//` lines you add, `README.md`) defaults to **English**. Switch only when the user **explicitly** asks (e.g. “listing in Japanese”, or any other language they name). Chatting in another language is **not** that request.
 - **Existing Customizer copy:** keep it. Do **not** rewrite local-language slider labels to English for packaging. The site translates after publish. Set `info.sourceLocale` to match the listing copy (`en` by default). Machine enum **values** stay as they were; only human labels follow this rule.
 
 Turn an existing `.scad` into a folder that **Import from folder** on [vary3d.com](https://vary3d.com) can map into a draft. This skill does **not** upload. It does **not** invent geometry.
@@ -51,7 +51,9 @@ packages/<slug>/
   cover.png           # 4:3 cover from cover.py
   variants.json       # when there are ≥2 useful presets
   covers/<preset>.png # one cover per preset
-  params.scad         # optional shared parameters (multi-file only)
+  covers/<stem>.png   # default cover per extra build root
+  params.scad         # kit only: complementary pieces on different files
+  README.md           # Long-form; GitHub + Import → Docs
   LICENSE             # upstream text, unmodified (forks)
   ORIGIN.md           # Forked from, original author, what this folder changed
 ```
@@ -65,8 +67,8 @@ Do not ship `.openscad-iter/`, `.openscad-preview/`, `.vary3d-iter/`, `brief.jso
 This file is enough to start:
 
 - How to copy and tidy without changing shape → [references/normalize.md](references/normalize.md)
-- Listing copy, covers, ORIGIN → [references/package.md](references/package.md)
-- Print notes in `info.print` → [references/print.md](references/print.md)
+- Listing copy, covers, README, ORIGIN → [references/package.md](references/package.md)
+- Print notes in README `## Print` → [references/print.md](references/print.md)
 - Samples → [examples.md](examples.md)
 
 Customizer comment minimum: [package.md](references/package.md#customizer-comments).
@@ -75,14 +77,14 @@ Customizer comment minimum: [package.md](references/package.md#customizer-commen
 
 1. **Source tree is read-only** unless the user said “edit in place”. Copy the include/use closure into `packages/<slug>/`. Do not modify `models/` by default.
 2. **Do not change the outside shape.** Compare bbox with `validate.py --expect … --tol 1` (1 mm). If `volume_mm3` moves by more than about 5%, you redesigned it — go back. Wrapping parts in `color()` is allowed. **Do not invent a split** or a `part` enum. If the source already has `part = "all"`, keep it — do not convert it to `show_*` booleans. Do not add `variants.json` presets that only switch `part`.
-3. Entry file in the copy is `model.scad`. If other files `include` the old name, add one forwarding `include <old-entry.scad>` instead of rewriting every path. Multi-file shared wall/clearance: root `params.scad` plus `include <params.scad>` in the build root (see package.md).
-4. Listing strings (`name`, `description`, tags, variant titles) default to **English**. Switch only if the user explicitly asked. Chat language does not count. Set `sourceLocale` to match. The site translates after publish. **`description`:** ≤800; cards show the first sentence or two, so lead with object + mate/feature. More sentences are fine; print notes go in `info.print`. See [package.md](references/package.md#description). **Tags: about 3, never more than 5.** Pick 0–1 from each axis — **object** (what it is), **mate** (what it fits), **feature** (what makes it different), **scene** (who it is for, only if the object name is generic). Do not repeat the category; do not pad with `openscad` / `parametric` / `diy`. See [package.md](references/package.md#tags).
+3. Entry file in the copy is `model.scad`. If other files `include` the old name, add one forwarding `include <old-entry.scad>` instead of rewriting every path. **`params.scad` only for a kit: complementary pieces on different files that must share wall / footprint / clearance.** Kit test: opening A cannot export B’s printable piece (`box.scad` has no lid). Then root `params.scad` plus `include <params.scad>` in those roots (see package.md). **Do not** add it when one file already exports both mating pieces via `part` (a tray file with `part=box` is a split, not a kit), for extra Models that are each a full product, a single file, unrelated files, or `geometry.scad` / library subdirs.
+4. Listing strings (`name`, `description`, tags, variant titles) default to **English**. Switch only if the user explicitly asked. Chat language does not count. Set `sourceLocale` to match. The site translates after publish. **`description`:** ≤800; cards show the first sentence or two, so lead with object + mate/feature. More sentences are fine; print notes go in README `## Print`. See [package.md](references/package.md#description). **Tags: about 3, never more than 5.** Pick 0–1 from each axis — **object** (what it is), **mate** (what it fits), **feature** (what makes it different), **scene** (who it is for, only if the object name is generic). Do not repeat the category; do not pad with `openscad` / `parametric` / `diy`. See [package.md](references/package.md#tags).
 5. Keep existing Customizer labels. Do not rewrite them to English. New labels you add are English unless the user asked otherwise. Machine enum values stay as they were.
-6. Default single-part color `"#2A9D90"` (site viewer face color) unless the user asked for paint. Parameter names for colors end with `_color`; trailing `// color`.
+6. Default single-part color `"#2A9D90"` (site viewer face color) unless the user asked for paint. Keep an existing `*_color` from the source; only fill the default when the source has none. Parameter names for colors end with `_color`; trailing `// color`.
 7. Prefer `"yes"` / `"no"` enums over bare booleans so the site panel stays labeled. Converting `true`/`false` to those enums is **not** a shape change; update `variants.json` `params` to the new strings in the same edit.
 8. Renaming knobs to `snake_case` is allowed for packaging; rename matching keys in presets in the same edit.
 9. `info.slug` matches the folder name. It is a folder hint; the site assigns the public URL slug after review.
-10. Do not write server-assigned fields: `id`, `userId`, object-storage paths, `status`, `visibility`, `__vary`. **Never invent `parentModelId`** — omit it unless you already have a real Vary3D id.
+10. Do not write server-assigned fields: `id`, `userId`, object-storage paths, `status`, `visibility`, `__vary`. Do not write `print` (`validate-info.py` rejects it; use README `## Print`). **Never invent `parentModelId`** — omit it unless you already have a real Vary3D id.
 11. Forks: keep upstream `LICENSE`; write `ORIGIN.md`; set `originType` to `fork` and fill source fields you know. Do not rebrand the design as Vary3D.
 12. Third-party `use` / `include` (BOSL2, …): keep them if the source needs them. Inlined spur-gear / trap-thread modules stay inside `model.scad` (not a `lib/` folder). Note `// requires: BOSL2` in the header and in the reply when that library is used. `validate.py` fails on `Can't open library`. The site preview may not have that library.
 
@@ -123,8 +125,11 @@ python3 "$SKILL_ROOT/scripts/validate-variants.py" packages/<slug>/variants.json
 # Default cover: 4:3, 45° diagonal. Open the PNG
 python3 "$SKILL_ROOT/scripts/cover.py" packages/<slug>/model.scad
 
-# One cover per preset; writes cover paths back into variants.json
+# One cover per preset (-D on the entry, including Global keys) plus extra build roots
 python3 "$SKILL_ROOT/scripts/cover-variants.py" packages/<slug>/variants.json
+
+# Long-form README (GitHub + Import Documentation)
+python3 "$SKILL_ROOT/scripts/generate-readme.py" packages/<slug>
 ```
 
 `--expect X Y Z` is `size` from the source JSON. Open `cover.png`. If there are many preset covers, open at least the default plus the two that change the silhouette most.
@@ -135,9 +140,11 @@ python3 "$SKILL_ROOT/scripts/cover-variants.py" packages/<slug>/variants.json
 - [ ] `extract-params.py` lists only intended knobs and prints **no `warnings`** (count ceilings, deny-list names, file-scope formulas, debug `part`; standard-part fits and print details hidden or derived)
 - [ ] `validate-info.py` passes (`vary3d.info` v1); `description` leads with object + mate/feature; tags about 3 (max 5), from object / mate / feature / scene — not padded
 - [ ] `cover.png` was written and opened
-- [ ] ≥2 useful presets → `validate-variants.py` passes plus preset covers opened
+- [ ] ≥2 useful presets → `validate-variants.py` passes plus preset covers opened (if `params.scad` exists, confirm a Global preset actually changed the silhouette)
+- [ ] Extra build roots have `covers/<stem>.png` and were opened
+- [ ] `generate-readme.py` wrote `README.md` (Files buckets; fork vs original Source; Global three-surface note only when `params.scad` exists)
 - [ ] Forks: `LICENSE` + `ORIGIN.md` + source fields
-- [ ] Printable parts: `info.print` three lines (split: Print N× per `part` token; `all` is preview only; no preset per token)
+- [ ] Printable parts: README `## Print` (split: Print N× per `part` token; `all` is preview only; no preset per token)
 - [ ] Original tree `git status` is clean (unless in-place mode)
 - [ ] No STL entry, no generator scratch in the folder
 

@@ -1,6 +1,6 @@
 # Package a model folder
 
-Output a `packages/<slug>/` tree. **This file plus [examples/m5-flange/](../examples/m5-flange/) are the runtime authority.** Do not fetch a remote spec. If a published spec disagrees, follow this page and mention the mismatch.
+Output a `packages/<slug>/` tree. **This file plus [examples/m5-flange/](../examples/m5-flange/) are the runtime authority for this skill version.** Do not fetch a remote spec at runtime — follow this page. If you know a published spec field disagrees with this page, finish the task per this page, tell the user the skill is stale, and copy the delta in with a version bump; do not invent fields the spec does not have.
 
 ## Customizer comments
 
@@ -25,9 +25,9 @@ Forks: `originType` `fork` plus `sourceUrl` / `originalAuthor` / `sourceLicense`
 
 **Never invent `parentModelId`.** Omit it unless it is a real Vary3D model id you already have.
 
-Printable parts add `print` (shown as Docs after import) — see [print.md](print.md). If the `.scad` already has a `part` enum, keep it and put Print N× in `info.print`; do not invent a split or replace `part` with `show_*` booleans.
+Printable parts add a README `## Print` section (Import maps the README to Docs) — see [print.md](print.md). If the `.scad` already has a `part` enum, keep it and put Print N× in that section; do not invent a split or replace `part` with `show_*` booleans.
 
-**Do not write:** server-assigned fields such as `id`, `userId`, object-storage paths, `status` / `visibility`, `engineVersion`, translated-copy fields (`*I18n`), counts, or `__vary`.
+**Do not write:** `print` (`validate-info.py` rejects it — use README `## Print`); server-assigned fields such as `id`, `userId`, object-storage paths, `status` / `visibility`, `engineVersion`, translated-copy fields (`*I18n`), counts, or `__vary`.
 
 Check: `python3 "$SKILL_ROOT/scripts/validate-info.py" packages/<slug>/info.json`
 
@@ -43,7 +43,7 @@ Worked example: [examples/m5-flange/info.json](../examples/m5-flange/info.json).
 - Good: `90-degree L-bracket with honeycomb lightening and M5 clearance holes.`
 - Weak: `This parametric OpenSCAD model is designed for FDM printers…` (empty lead)
 
-**Next sentences (optional):** use, a second difference, or who it is for. Print settings, assembly, and license do **not** belong here — print goes in `info.print`.
+**Next sentences (optional):** use, a second difference, or who it is for. Print settings, assembly, and license do **not** belong here — print goes in README `## Print`.
 
 Finish `description` after the cover render so the blurb matches the part.
 
@@ -82,9 +82,9 @@ Write when there are **at least two useful** named sets. `format` `vary3d.varian
 - `params` keys must match top-level Customizer names exactly (`cover-variants.py` errors on typos).
 - No `__vary`. Prefer no keys that start with `_`.
 - Preset `name` / `description` English unless the user asked otherwise.
-- Optional `cover` is a **relative PNG path** (e.g. `covers/m5.png`), not image bytes. `cover-variants.py` writes that field after rendering.
+- Optional `cover` is a **relative PNG path** (e.g. `covers/m5.png`), not image bytes. `cover-variants.py` writes that field after rendering with OpenSCAD `-D` on the preview entry (so Global keys in `params.scad` apply). Do not rewrite only the entry file’s top-level assignments.
 - Do not clone twenty presets that only change one number; each set needs a use case.
-- Do **not** add a preset per `part` token (`part=base` / `part=lid`). Printable kinds and counts belong in `info.print` (`Print N×`), not `variants.json`. Presets are named size / feature sets (M4 vs M5), not export switches.
+- Do **not** add a preset per `part` token (`part=base` / `part=lid`). Printable kinds and counts belong in README `## Print` (`Print N×`), not `variants.json`. Presets are named size / feature sets (M4 vs M5), not export switches.
 
 After writing the file, render covers:
 
@@ -93,9 +93,9 @@ python3 "$SKILL_ROOT/scripts/cover-variants.py" packages/<slug>/variants.json
 python3 "$SKILL_ROOT/scripts/validate-variants.py" packages/<slug>/variants.json
 ```
 
-Model default cover remains `cover.png` from `cover.py` — one image does not stand in for every preset.
+`cover-variants.py` also writes a default cover for each extra exportable build root (`covers/<stem>.png`). Extra roots are package-root `.scad` files except `params.scad` and `geometry.scad`. Model default cover remains `cover.png` from `cover.py`.
 
-Optional shared parameters: root `params.scad` plus `include <params.scad>` in the build root (see SKILL.md rule 3).
+Optional **Global** (`params.scad`): only for a kit — complementary pieces on **different** files that must share wall / footprint / clearance. Kit test: opening A cannot export B’s piece (`box.scad` has no lid). Each of those roots `include <params.scad>`. Do not add it when one file already exports both via `part`, for extra Models that are each a full product, a single file, unrelated files, or libraries. Site Global sliders parse `params.scad`; the OpenSCAD GUI Customizer does **not** follow `include`. CLI `-D` on the entry overrides Global. Do not re-assign Global names on the build root. Spell this out in the package README when `params.scad` exists.
 
 ## Covers
 
@@ -104,6 +104,30 @@ python3 "$SKILL_ROOT/scripts/cover.py" packages/<slug>/model.scad
 ```
 
 4:3, 45° diagonal orthographic. Uncolored faces use the site default `#2A9D90`; `color()` parts keep their own color. The first cover render may install a **Vary3D** color scheme into the local OpenSCAD config directory. **Open** the PNG.
+
+`--set` / `--params-json` become OpenSCAD `-D` on that entry (end-of-file assignment). That overrides `params.scad`. Do not use `override-params.py` on the entry for Global keys.
+
+## README.md
+
+Long-form page (GitHub and Import Documentation). Generate after covers:
+
+```bash
+python3 "$SKILL_ROOT/scripts/generate-readme.py" packages/<slug>
+```
+
+Copy listing facts from `info.json` / `variants.json` / knobs / PNGs. Do not invent a second blurb. Do not copy the upstream README. **Preserve** an existing `## Print` section; do not read `info.print`.
+
+Section order: title + description → Source → Files (Global / Models / Libraries) → Presets → Print → License. No top-level Parameters.
+
+- **Fork Source:** Forked from URL, original author, upstream license, this folder (packaging only; geometry is upstream). No “Vary3D original”.
+- **Original Source:** Vary3D original, no upstream CAD. No library files → `Libraries: none`.
+- **Files / Global:** root `params.scad` only; three-surface note + visible knobs; no cover render.
+- **Files / Models:** exportable build roots with images and that file’s visible knobs. Not `params.scad` / `geometry.scad`.
+- **Files / Libraries:** `geometry.scad` and subdirectories of `.scad`; no render.
+- **Presets:** not build roots. Image then name/value table.
+- **Print:** author settings / orientation / why in README. Split: Print N×.
+
+`validate-info.py` does not require README.
 
 ## ORIGIN.md (forks)
 
@@ -121,6 +145,6 @@ Do not claim original design when it is not.
 
 ## Import from folder
 
-Vary3D maps `info.json` / `variants.json` / OpenSCAD into a **draft**. It does not store those JSON documents as blobs. Guests can tweak parameters and export STL / 3MF once the model is published on the site.
+Vary3D maps `info.json` / `variants.json` / OpenSCAD / `README.md` into a **draft** (README → Documentation). It does not store those JSON documents as blobs. Guests can tweak parameters and export STL / 3MF once the model is published on the site.
 
 The skill never publishes or reviews for you.

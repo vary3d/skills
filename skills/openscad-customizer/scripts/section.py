@@ -66,8 +66,12 @@ def parse_d_assignments(extra: list[str]) -> list[tuple[str, str]]:
 def apply_d_overrides(src: Path, dest: Path, extra: list[str]) -> None:
     """Write a temp copy with top-level -D assignments applied.
 
-    OpenSCAD `-D` on the wrapper does not override assignments inside `include`.
-    Uses override-params.py (top-level region only, comment-safe).
+    OpenSCAD `-D` on the **entry** file is treated as an assignment at the
+    end of that file, so it overrides names from `include <params.scad>`.
+    Prepending the same assignment *before* the include loses (include wins).
+    This helper still rewrites the file so `-D` tokens apply when the caller
+    cannot pass them through; missing names are prepended (wrong for Global
+    keys — pass `-D` to OpenSCAD instead, as cover.py does).
     """
     overrides: dict[str, object] = {}
     for name, raw in parse_d_assignments(extra):

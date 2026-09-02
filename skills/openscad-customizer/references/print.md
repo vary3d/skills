@@ -8,9 +8,27 @@ Read this before writing geometry for a printable part. Numbers are a starting p
 - [Orientation](#orientation)
 - [Print strategy (do not split by default)](#print-strategy-do-not-split-by-default)
 - [`part` enum (2–4 printable meshes)](#part-enum-2-4-printable-meshes)
+- [One article vs extra files](#one-article-vs-extra-files)
 - [Joints (split only)](#joints-split-only)
 - [Export](#export)
 - [What to tell the user](#what-to-tell-the-user)
+
+## Split-part parameters at a glance
+
+One place for the rules scattered across this file, [scad-style.md](scad-style.md), and the SKILL.md Few knobs section. A **split** is 2–4 printable kinds of **one article** (one product, one envelope). A **kit** is complementary pieces that live on **different** files and must share wall / footprint / clearance (`params.scad`), not more `part` values. If one file already exports both mating pieces via `part`, that is a split, not a kit.
+
+| Topic | Rule |
+|---|---|
+| When | 2–4 printable kinds of one article. One-piece: no `part`. Print-in-place: no `part` (mutually exclusive with split) |
+| Knobs | Envelope (inner **or** outer, not both) + `wall` + `part` + one `*_color`. Nothing else on the default panel |
+| `part` order | `part` is the **first** top-level assignment — before Dimensions and color — so the user picks the part before tweaking its sizes |
+| `part` values | `all` (assembled preview, default) + one token per kind, named after the module (`base`, `lid`, `leg`). Labels English |
+| Anti-pattern | Per-token size knobs (`base_l` + `lid_l`). Tokens share the envelope; lid/base length, lip, pin, counts are module locals |
+| Joints | Derive lip / pin / screw from host wall `T` at the cut, inside the module. `fit_gap` 0.2–0.3 mm is the only joint value that may stay Hidden; apply it on the female only. Same numbers male/female |
+| Do not expose | `rabbet_h`, `rabbet_w`, `pin_d`, `joint_depth`, `lip_h`, `lip_w` on the default panel (`extract-params.py` warns) |
+| Verify | bbox on `part="all"` (assembled). `--single-body` **per printable token** via `-D part="lid"`; **not** on `all`; do not `union()` the assembly to fake one body |
+| Export | `openscad -o base.stl -D 'part="base"' model.scad` per kind. Quantity is for the slicer |
+| Delivery | Reply + README `## Print`: `Print N× <token>`; `all` is preview only. Never a `variants.json` preset per token |
 
 ## Structure
 
@@ -98,6 +116,7 @@ OpenSCAD exports **whatever is currently visible** as one file. There is no asse
 /* [Rendering] */
 
 // Which bodies to build. All = assembled preview; pick one kind to export STL.
+// Put this assignment FIRST in the file — before Dimensions and color.
 part = "all"; // [all:All, base:Base, lid:Lid]
 ```
 
@@ -105,11 +124,12 @@ part = "all"; // [all:All, base:Base, lid:Lid]
 |---|---|
 | When | Only if there are 2–4 **kinds** of mesh to export |
 | Knob | One enum named `part`, group `Rendering`, default `"all"` |
+| Order | `part` is the **first** top-level assignment — before Dimensions and color — so the user picks the part before tweaking its sizes |
 | Values | `all` plus one token per printable kind (same as the module short name: `base`, `lid`, `leg`) |
 | Labels | English: `All`, `Base`, `Lid` |
 | One-piece | **Do not** add `part` |
 | Instances | Count **kinds**, not copies. `all` places every instance. `part="leg"` draws **one** copy in **print pose** at the origin |
-| Quantity | Delivery lines and packaged `info.print`: `Print 4× leg`. Not `variants.json` |
+| Quantity | Delivery lines and packaged README `## Print`: `Print 4× leg`. Not `variants.json` |
 | Mirror that cannot stack | Two tokens, or a `side` enum — not four instance names |
 | Hardware | Off-the-shelf screws stay out of the dropdown |
 
@@ -117,7 +137,18 @@ part = "all"; // [all:All, base:Base, lid:Lid]
 
 **Code shape:** one module per kind. `*_print()` is the export / bed pose (origin). `*_geom()` is assembly pose only (`translate` / `rotate` then `*_print()`). `place_*() children()` arrays instances in `all`. A printable token calls `*_print()` only — **never** `place_*()`. Do not duplicate geometry.
 
-Prefer **one file + `part`**. Extra files only for shared `params.scad` or a part that must be its own build root. `open-gui.py` opens the root with default `part="all"`.
+## One article vs extra files
+
+| | One `model.scad` + `part` | Extra build roots + `params.scad` |
+|---|---|---|
+| What | Same article, 2–4 printable kinds | Complementary pieces on different files that must mate |
+| Export | Set `part`, then export | Open that file, then export |
+| Shared sizes | This file’s Customizer | Root `params.scad` (`include` in each root) |
+| When | Default for a split / assembly preview | Only if opening A cannot export B’s piece, and they must mate |
+
+Prefer **one file + `part`**. Do not split a base/lid into two files just to share `wall` (desktop sliders would disappear). Extra Models that are each a full product (an organizer that already includes the box and exports tray/box via `part`) do **not** get `params.scad`. Do not write `params.scad` in `models/` unless the user asked for complementary pieces that cannot export each other.
+
+**Split knobs:** one envelope (inner or outer, not both), `wall`, `part`, one color. Mating geometry is derived — see Joints. Anti-pattern: `base_l` + `lid_l`. `open-gui.py` opens the root with default `part="all"`.
 
 ## Joints (split only)
 
@@ -196,7 +227,7 @@ Always:
 - Why: why that pose or recipe
 - **One piece or split** — say it even when you did not split. One-piece: `One piece; no split.` plus the wall/bed reason. Split: `Print N× <token>` for each kind; `part="all"` is preview only (not a print export)
 
-If the user later packs for the site, those lines map to `info.print` (`settings` / `orientation` / `why` — put counts or “One piece; no split” in `orientation` or `why`).
+If the user later packs for the site, those lines map to README `## Print` (`settings` / `orientation` / `why` — put counts or “One piece; no split” in orientation or why).
 
 Examples of when to leave the defaults:
 

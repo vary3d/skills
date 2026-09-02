@@ -2,7 +2,7 @@
 
 > Human guide. Runtime instructions: [skills/openscad-customizer/SKILL.md](../skills/openscad-customizer/SKILL.md).
 
-Write and **verify** parametric OpenSCAD for the **desktop app**. Default output is `models/<slug>/model.scad`. This skill does not upload models and does not write `info.json`, covers, or `packages/`. For [vary3d.com](https://vary3d.com) Import from folder, use [vary3d-package](vary3d-package.md) after you have a working `.scad`.
+Write and **verify** parametric OpenSCAD for the **desktop app**. Default output is `models/<slug>/model.scad`. This skill does not upload models and does not write `info.json`, covers, `README.md`, or `packages/`. For [vary3d.com](https://vary3d.com) Import from folder, use [vary3d-package](vary3d-package.md) after you have a working `.scad`.
 
 Install:
 
@@ -15,7 +15,7 @@ npx skills add vary3d/skills@openscad-customizer
 | Use this skill | Not this skill |
 |---|---|
 | “Design an M5 flange” | “Pack this flange for Vary3D import” → vary3d-package |
-| Parametric `.scad` + Customizer sliders | `info.json`, `variants.json`, cover PNGs |
+| Parametric `.scad` + Customizer sliders | `info.json`, `variants.json`, cover PNGs, package `README.md` |
 | Compile, bbox, six views, open GUI | Publish or review on the site |
 
 Requires **OpenSCAD CLI** and **Python 3** (macOS, Linux, native Windows — no WSL).
@@ -37,7 +37,7 @@ Design rules that matter most:
 - **Few knobs, derived rest** — millimetres in the request are defaults, not sliders. Visible cap: simple ≤ 6, complex ≤ 8. Mate holder: object sizes only; stand derived. `extract-params.py` must be warning-free **before six views** (and before Done).
 - **Files default to English**; chat follows the user’s language.
 - **Prefer no third-party library** so the GUI opens the file as-is. Inline MIT examples for gears, trapezoid threads, polyhole, teardrop, self-tap (do not `use <MCAD>`).
-- **Print: reorient, then geometry, then split, then supports.** User saying “split” is Confirm, not auto-split. If it stays one piece, **say so** (wall angle / bed face). 2–4 printable kinds → one `part` enum, default All. Split joints: derive from host wall thickness; open an assembled section through the joint ([print.md](../skills/openscad-customizer/references/print.md)).
+- **Print: reorient, then geometry, then split, then supports.** User saying “split” is Confirm, not auto-split. If it stays one piece, **say so** (wall angle / bed face). 2–4 printable kinds of **one article** → one `part` enum, default All; `part` is the **first** top-level assignment (before Dimensions and color) so the part selector leads the panel; tokens share envelope + `wall` (no `base_l` + `lid_l`). Extra `.scad` roots only for a second product. Split joints: derive from host wall thickness; open an assembled section through the joint ([print.md](../skills/openscad-customizer/references/print.md)).
 - **User is the judge of design intent** — the agent can spot broken geometry, but only the user knows if the shape matches what they wanted (or their photo / drawing).
 
 ## Workflow
@@ -170,7 +170,7 @@ models/<slug>/
   .openscad-iter/001/          # optional iteration snapshots; not for git
 ```
 
-Do not write `packages/`, `info.json`, or covers — that is [vary3d-package](vary3d-package.md). One-piece: say so in the reply; no `part` enum. Split models add a `part` enum (default All); still one `model.scad`.
+Do not write `packages/`, `info.json`, or covers — that is [vary3d-package](vary3d-package.md). One-piece: say so in the reply; no `part` enum. Split models add a `part` enum (default All); still one `model.scad`. Do not write `params.scad` unless complementary pieces live on different files (opening A cannot export B).
 
 ## Further reading
 

@@ -29,7 +29,7 @@ bed_chamfer = 0.6; // [0:0.1:1.2]
 
 /* [Rendering] */
 
-flange_color = "#4A7C6F"; // color
+flange_color = "#2A9D90"; // color
 
 flange();
 

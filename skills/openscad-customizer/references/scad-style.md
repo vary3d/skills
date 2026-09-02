@@ -34,7 +34,7 @@ cable_slot = true;
 /* [Rendering] */
 
 // Mid-tone hex so a light preview does not wash out.
-bracket_color = "#4A7C6F"; // color
+bracket_color = "#2A9D90"; // color
 show_honeycomb = true;
 
 angle_bracket();
@@ -95,7 +95,7 @@ module box(
 }
 ```
 
-**Few knobs, derived rest.** Numbers in the request are defaults, not a slider list. Visible cap: simple **≤ 6**, complex **≤ 8** (including `part` and one color) — a ceiling, not a quota (typical 3–5). Grouping does not raise it. **Mate holder** (coin / bearing / phone stand): visible sizes are the object’s mating dims only; cradle geometry is derived. Allow: SKU envelope, named feature on/off (only what they asked), shell `wall` when the shell *is* the product, one `*_color`, `part` when required. Deny unless they asked to retune it: `gap`, `reveal_ratio`, `arm_w`, `plate_t`, `lip_h`, `label_size`, `tilt_deg` / `fold_angle`, standard-part fits, `bed_chamfer` / `fit_gap`. Features you invented are not knobs. `extract-params.py` must print **no warnings** before Done.
+**Few knobs, derived rest.** Numbers in the request are defaults, not a slider list. Visible cap: simple **≤ 6**, complex **≤ 8** (including `part` and one color) — a ceiling, not a quota (typical 3–5). Grouping does not raise it. **Mate holder** (coin / bearing / phone stand): visible sizes are the object’s mating dims only; cradle geometry is derived. **Split of one article:** envelope + `wall` + `part`; do not add `base_l` + `lid_l`. Allow: SKU envelope, named feature on/off (only what they asked), shell `wall` when the shell *is* the product, one `*_color`, `part` when required. Deny unless they asked to retune it: `gap`, `reveal_ratio`, `arm_w`, `plate_t`, `lip_h`, `label_size`, `tilt_deg` / `fold_angle`, standard-part fits, `bed_chamfer` / `fit_gap`. Features you invented are not knobs. `extract-params.py` must print **no warnings** before Done.
 
 Helper modules with no literal defaults must not be the first `module` in the file. Put helpers **after** the main module.
 
@@ -105,7 +105,7 @@ If the user later packs for Vary3D, labeled `"yes"` / `"no"` enums are more stab
 
 - One main module, called once at the bottom of the file.
 - Repeated features become child modules (hole grids, honeycomb, ribs, rounded boxes). Children go **after** the main module.
-- **Split for print (2–4 kinds):** one `part` enum, default `"all"`. See the skeleton below and [print.md](print.md). Do not add `show_<part>` booleans. Feature on/off stays `show_honeycomb`; sections stay `cutaway`.
+- **Split for print (2–4 kinds):** one `part` enum, default `"all"`. See the skeleton below and [print.md](print.md). Do not add `show_<part>` booleans. Feature on/off stays `show_honeycomb`; sections stay `cutaway`. Tokens share the article envelope. Extra build roots for a second complete product; `params.scad` at pack time only if opening A cannot export B’s piece.
 - One-piece assemblies that are still a single printable solid: no `part` knob. Optional `cutaway = "none"; // [none, right, front]`.
 - `$fn` only for polygonal features (hex, gear). Overall resolution uses `$fa` / `$fs`.
 - Preview vs render: `$fn = $preview ? 32 : 64;` only on expensive revolves.
@@ -117,10 +117,12 @@ Token names match the module (`base`, `lid`, `leg`). Labels are English. Geometr
 ```openscad
 /* [Rendering] */
 
-box_color = "#2A9D90"; // color
-
 // All = assembled preview. Pick a kind to export STL (slice extras in the slicer).
+// Put this assignment FIRST in the file — before Dimensions and color.
 part = "all"; // [all:All, base:Base, lid:Lid]
+
+// Hull render color.
+box_color = "#2A9D90"; // color
 
 module box() {
     if (part == "all") {
@@ -258,7 +260,7 @@ OpenSCAD `color()` (2019.05+) accepts:
 
 | Form | Example |
 |---|---|
-| `#RRGGBB` | `"#4A7C6F"` |
+| `#RRGGBB` | `"#2A9D90"` |
 | Short / alpha hex | `"#F80"` / `"#5E6E4ACC"` |
 | SVG name | `"olive"` |
 | `[r, g, b]` | `[0.37, 0.43, 0.29]` (0–1; not a Customizer color knob) |
@@ -267,7 +269,7 @@ OpenSCAD `color()` (2019.05+) accepts:
 /* [Rendering] */
 
 // Hull render color.
-hull_color = "#4A7C6F"; // color
+hull_color = "#2A9D90"; // color
 
 color(hull_color) hull_body();
 ```
@@ -327,6 +329,6 @@ Then:
 
 - Size only → top-level assignments
 - New feature → new parameter + local module; keep existing group names
-- User dropped an STL → `import("part.stl")` and parameterize only what they want to change
+- User dropped an STL → `import("part.stl")` and parameterize only what they want to change. Such a file is a **design** file — it cannot be the Import-from-folder entry (the site rejects `import("….stl")` as the entry). To publish, the user needs OpenSCAD source geometry
 - Do not rewrite a file you do not understand
 - Packing for Vary3D import is a different skill: **vary3d-package** (separate install; do not install it for them)

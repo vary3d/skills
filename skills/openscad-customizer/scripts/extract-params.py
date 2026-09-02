@@ -231,6 +231,10 @@ DENY_VISIBLE_NAMES = frozenset(
         "lip_h",
         "lip_w",
         "chamfer",
+        "corner_radius",
+        "fold_angle",
+        "tilt_deg",
+        "pin_d",
     }
 )
 

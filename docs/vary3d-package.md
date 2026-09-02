@@ -28,7 +28,7 @@ Runtime authority: [references/package.md](../skills/vary3d-package/references/p
 
 1. **Baseline** the source (bbox, volume, params).
 2. **Copy** the include/use closure into `packages/<slug>/` (do not edit `models/` unless the user asked in-place).
-3. **Tidy** Customizer copy without moving geometry (enums, `_color`, snake_case renames with preset key updates).
+3. **Tidy** Customizer copy without moving geometry (enums, `_color`, snake_case renames with preset key updates; if a `part` enum exists, move it to the first top-level assignment).
 4. **Validate** shape + knobs + JSON, then covers.
 5. **Deliver** the folder path; user imports on vary3d.com.
 
@@ -41,7 +41,7 @@ Design rules that matter most:
 - **Tags are search axes** — about 3, max 5: object, mate, distinctive feature; scene only if the object name is generic. Do not pad.
 - **Never invent `parentModelId`** or other server fields.
 - **STL-only entry is rejected** — need OpenSCAD source.
-- **Do not invent a split** — if the source has a `part` enum, keep it; `info.print` lists Print N× per token. Do not add `variants.json` presets that only switch `part`.
+- **Do not invent a split** — if the source has a `part` enum, keep it; README `## Print` lists Print N× per token. Do not add `variants.json` presets that only switch `part`.
 
 ## Workflow
 
@@ -61,7 +61,8 @@ flowchart TD
     P -->|warnings| E
     P -->|ok| I[validate-info.py + validate-variants.py]
     I --> H[cover.py + cover-variants.py]
-    H --> J[Deliver packages/slug/]
+    H --> R[generate-readme.py]
+    R --> J[Deliver packages/slug/]
     J --> K[User: Import from folder on vary3d.com]
 ```
 
@@ -74,7 +75,8 @@ packages/<slug>/
   cover.png           # 4:3 from cover.py
   variants.json       # when ≥2 useful presets
   covers/<preset>.png
-  params.scad         # optional, multi-file only
+  params.scad         # kit only: complementary pieces on different files
+  README.md           # Long-form; GitHub + Import → Docs
   LICENSE             # forks: upstream text, unmodified
   ORIGIN.md           # forks: Forked from, what changed
 ```
@@ -105,11 +107,12 @@ python3 "$SKILL_ROOT/scripts/validate-info.py" packages/<slug>/info.json
 python3 "$SKILL_ROOT/scripts/validate-variants.py" packages/<slug>/variants.json   # if presets
 python3 "$SKILL_ROOT/scripts/cover.py" packages/<slug>/model.scad
 python3 "$SKILL_ROOT/scripts/cover-variants.py" packages/<slug>/variants.json
+python3 "$SKILL_ROOT/scripts/generate-readme.py" packages/<slug>
 ```
 
-First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`). Open `cover.png`. If there are many preset covers, open at least the default plus the two that change the silhouette most.
+Preset covers use OpenSCAD `-D` on the preview entry so Global keys in `params.scad` apply. First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`). Open `cover.png`. If there are many preset covers, open at least the default plus the two that change the silhouette most. `README.md` is GitHub and Import Documentation. `validate-info.py` does not require README.
 
-Printable parts: three lines under `info.print` (settings, orientation, why). Split models: include Print N× per `part` token; `all` is preview only; no preset per token. See [references/print.md](../skills/vary3d-package/references/print.md).
+Printable parts: `## Print` in the README (settings, orientation, why). Split models: include Print N× per `part` token; `all` is preview only; no preset per token. See [references/print.md](../skills/vary3d-package/references/print.md).
 
 Forks: keep upstream `LICENSE`; write `ORIGIN.md`; fill source fields. Original tree `git status` stays clean unless the user asked in-place.
 
@@ -130,7 +133,7 @@ User: "Make it importable on Vary3D with M4/M5 presets"
 |---|---|
 | Runtime entry | [SKILL.md](../skills/vary3d-package/SKILL.md) |
 | Copy without shape change | [references/normalize.md](../skills/vary3d-package/references/normalize.md) |
-| info.json, covers, ORIGIN | [references/package.md](../skills/vary3d-package/references/package.md) |
-| Print in info.json | [references/print.md](../skills/vary3d-package/references/print.md) |
+| info.json, covers, README, ORIGIN | [references/package.md](../skills/vary3d-package/references/package.md) |
+| Print in README `## Print` | [references/print.md](../skills/vary3d-package/references/print.md) |
 | Examples | [examples.md](../skills/vary3d-package/examples.md) |
 | Publish spec | [vary3d/spec](https://github.com/vary3d/spec) |

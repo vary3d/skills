@@ -28,7 +28,7 @@ Edit the original tree only when the user said “in place”, and say what you 
 1. **Baseline:** `validate.py` on the original entry; note `size` and `volume_mm3`; `extract-params.py` for knobs; read `use` / `include` (report cycles) and the main module. If a `part` enum exists, keep it (do not add `show_<part>`).
 2. **Slug:** ASCII lowercase kebab-case. No non-ASCII folder names.
 3. **Copy closure:** entry + `.scad` actually included/used + required assets. Skip STL caches, old PNG, `.DS_Store`, `.openscad-iter/`, `.vary3d-iter/`.
-4. **Entry:** copy’s entry is `model.scad`. If relatives still include the old filename, one `include <old-entry.scad>` in `model.scad` — do not rewrite every path. Shared wall/clearance across files: add root `params.scad` and `include <params.scad>` in the build root.
+4. **Entry:** copy’s entry is `model.scad`. If relatives still include the old filename, one `include <old-entry.scad>` in `model.scad` — do not rewrite every path. **`params.scad` only for a kit: complementary pieces on different files that must share wall / footprint / clearance.** Kit test: opening A cannot export B’s printable piece. Then add root `params.scad` and `include <params.scad>` in those roots. Skip it when one file already exports both via `part`, for extra Models that are each a full product, a `part` split, unrelated files, and helper/library `.scad`.
 5. **Tidy** (mesh unchanged):
    - Top-level parameters full `snake_case`; description on the line above; `/* [Group] */`. New copy is English unless the user asked otherwise
    - Only literals before the first module; derived expressions move inside the module
@@ -36,8 +36,9 @@ Edit the original tree only when the user said “in place”, and say what you 
    - Enums `// [value:Label]` — keep machine values; keep existing Labels (do not rewrite local-language Labels to English)
    - Bare `true`/`false` → `"yes"`/`"no"` enums when packing for the site panel; update preset `params` to those strings in the same edit
    - Rename knobs and matching preset keys in the same edit
+   - If a `part` enum exists, move it to the **first** top-level assignment (before Dimensions and color) so the site panel lists the part selector first. This is an order change, not a shape change
    - Do **not** rewrite existing local-language slider copy to English; the site translates after publish
-6. **Listing files:** `info.json` (forks fill origin fields; never invent `parentModelId`), `cover.png`; ≥2 useful presets → `variants.json` + preset covers. If an old variants file exists, point `files` keys at `model.scad` and rename `params` to the new top-level names.
+6. **Listing files:** `info.json` (forks fill origin fields; never invent `parentModelId`), `cover.png`; ≥2 useful presets → `variants.json` + preset covers. `generate-readme.py` for `README.md` (GitHub + Import Docs). If an old variants file exists, point `files` keys at `model.scad` and rename `params` to the new top-level names. Do not write `info.print`.
 7. **Libraries:** keep `use` / `include` the source needs. Comment `// requires: BOSL2` (or the library name). Inlined MIT gear/thread modules need no extra files. Site preview may not load BOSL2. `validate.py` fails if a `use` is missing.
 8. **Do not write brief/plan** — those belong to geometry generation.
 
@@ -45,7 +46,8 @@ Edit the original tree only when the user said “in place”, and say what you 
 
 - [ ] `validate.py` on the packaged entry with `--expect` from the baseline `size` and `--tol 1`
 - [ ] `volume_mm3` within ~5% of baseline
-- [ ] `extract-params.py` lists every knob
+- [ ] `extract-params.py` lists only intended knobs and prints **no `warnings`** (count ceilings, deny-list names, file-scope formulas). Hiding a knob, switching to `"yes"`/`"no"` enums, or adding a missing `*_color` is **not** a shape change
 - [ ] `validate-info.py` (and `validate-variants.py` if presets)
 - [ ] `cover.png` (and preset covers) opened
+- [ ] `README.md` generated
 - [ ] Original tree `git status` clean (unless in-place)

@@ -34,6 +34,7 @@ FORBIDDEN_EXACT = {
     "status",
     "visibility",
     "engineVersion",
+    "parentModelId",
 }
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
@@ -78,7 +79,7 @@ def main() -> int:
     if data.get("engineType") != "openscad":
         errors.append('engineType must be "openscad"')
     origin = data.get("originType")
-    if origin not in (None, "original", "fork"):
+    if origin not in ("original", "fork"):
         errors.append('originType must be "original" or "fork"')
     if origin == "fork" and not data.get("sourceUrl") and not data.get("originalAuthor"):
         errors.append("fork: set sourceUrl and/or originalAuthor")
@@ -86,6 +87,9 @@ def main() -> int:
     license_ = data.get("license")
     if isinstance(license_, str) and re.search(r"(?:^|-)ND(?:-|$)", license_.upper()):
         errors.append("license must not be ND (no-derivatives)")
+
+    if "print" in data:
+        errors.append("do not write print; use README ## Print")
 
     for key in data:
         if key in FORBIDDEN_EXACT:

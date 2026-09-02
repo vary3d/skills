@@ -11,10 +11,5 @@
   "originType": "original",
   "engineType": "openscad",
   "entry": "model.scad",
-  "cover": "cover.png",
-  "print": {
-    "settings": "PLA, 0.2mm layer, 2 walls, 15% gyroid infill, no supports.",
-    "orientation": "Place the large face on the bed.",
-    "why": "Keeps the plate flat and the chamfer on the top."
-  }
+  "cover": "cover.png"
 }

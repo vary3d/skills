@@ -8,12 +8,12 @@ description: >-
   STL, 3D-printable parts, brackets, enclosures, flanges, mounts, washers,
   or an in-place edit of an existing .scad. Also when they attach a product
   photo, CAD three-view, screenshot, or engineering drawing to copy.
-version: "1.20"
+version: "1.27"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH.
 metadata:
   author: vary3d
-  version: "1.20"
+  version: "1.27"
   related_skills: vary3d/skills@vary3d-package
 ---
 
@@ -53,7 +53,7 @@ models/<slug>/
 ```
 
 - Entry file is **`model.scad`**. Do not scatter a lone `.scad` at the repo root.
-- Do **not** write `packages/`, `info.json`, or covers — that is **vary3d-package**.
+- Do **not** write `packages/`, `info.json`, covers, or `README.md` — that is **vary3d-package**.
 - Small-edit: change the existing file in place (wherever it already lives).
 
 A sample part lives at [examples/m5-flange.scad](examples/m5-flange.scad) (copy into `models/<slug>/model.scad` for a user project). MIT modules to **inline** (do not `use` the example file): [examples/spur-gear.scad](examples/spur-gear.scad), [examples/trap-thread.scad](examples/trap-thread.scad), [examples/polyhole.scad](examples/polyhole.scad), [examples/teardrop.scad](examples/teardrop.scad), [examples/selftap.scad](examples/selftap.scad).
@@ -131,7 +131,7 @@ Do not write geometry on complex without Brief/Plan. Do not fake JSON on simple.
 3. Comments, group titles, slider labels, and in-module notes are **English** unless the user explicitly asked for another language. Chat language does not count.
 4. Geometry lives in a `module`. Call the main module once at the end of the file. Helpers with no defaulted args must not be the first `module` in the file.
 5. Color parts with `color()`. Color parameters end with `_color`. Give a literal default. A mid-tone hex (not near-white / near-black) reads well on a light preview. No `undef` / empty string.
-6. **When there are 2–4 printable meshes:** one `part` enum, default `"all"` (see [print.md](references/print.md) and [scad-style.md](references/scad-style.md)). Do not add `show_<part>` booleans. Feature toggles (`show_honeycomb`) and `cutaway` stay separate. One-piece models: no `part` knob.
+6. **When there are 2–4 printable meshes of one article:** one `part` enum, default `"all"` (see [print.md](references/print.md) and [scad-style.md](references/scad-style.md)). Put `part` **first** in the Customizer order — it is the first top-level assignment, before Dimensions and color — so the user picks the part before tweaking its sizes. Do not add `show_<part>` booleans. Feature toggles (`show_honeycomb`) and `cutaway` stay separate. One-piece models: no `part` knob. Tokens **share** the article envelope — do not add per-body size knobs (`base_l` + `lid_l`). Extra build-root `.scad` files for a second **complete product**. Write `params.scad` at pack time only if those roots are complementary pieces that cannot export each other (kit test). Default: no `params.scad`.
 7. Fillets in the 2D profile (`offset` / rounded polygon). If `minkowski` will round the bed face, say so.
 8. **No `models/<slug>/lib/`. No `use <MCAD/…>`.** Prefer primitives. Inline marked MIT modules from `examples/` (gears, trapezoid thread, polyhole, teardrop, self-tap) — do not live-`use` those files. Table: [scad-style.md](references/scad-style.md) Libraries. BOSL2 only if the user asked or the file already has `use <BOSL2>`; probe with `validate.py` first. If missing: **stop**, show the clone command for the **user** to run (do not run git clone yourself), then wait. Then `// requires: BOSL2` in the header. Site preview may not load it. `validate.py` fails on `Can't open library` even when leftover geometry still compiles.
 9. `$fa = 4; $fs = 0.4;` (or `$fn` per feature). Units mm.
@@ -174,6 +174,8 @@ A number in the request:
 | Derived local | **inside** the main `module` | nobody | `outer` from inner+`wall`, pocket from OD+clearance, lip from `T` |
 
 Do **not** put formulas in the Customizer window (`outer = inner + 2 * wall;` is neither a slider nor a local). Module arguments = visible + Hidden literals only; `pocket_dia` / `lip_w` / `outer_*` stay in the body. Pick **one side** of a pair as the knob (inner vs outer, hose OD vs socket ID). Guard with `min` / `max` so one slider cannot require the user to fix another. Male and female share one nominal; add `fit_gap` on the female only.
+
+**Split of one article.** Visible sizes are that product’s envelope + `wall` (plus `part` and one color). Lid/base length, lip, pin, instance counts — module locals from those. Changing `inner` or `wall` must update every token. Do not give each token its own envelope. `fit_gap` may be Hidden. A second **complete product** (for example an organizer that already includes the box and splits with `part`) is extra files **without** `params.scad`. Complementary pieces that live only on different files (box.scad has no lid) share `params.scad` at packaging.
 
 **Hidden** is not a dump for values you should have computed. If it follows from a knob, derive it. Changing one visible knob must not force the user to fix another by hand.
 
@@ -248,8 +250,8 @@ Fix only what the PNGs show. When a previous round exists, **open this round and
 - [ ] **User confirmed the shape** — you showed iso + top views (and the **reference image(s)** when they attached any) and asked in the user’s language whether the shape looks right / matches the photo or drawing, and whether any parts are floating; user said OK (or you fixed what they flagged)
 - [ ] If this session changed geometry ≥2 times (or complex already rendered): snapshot, and compared to the previous PNGs
 - [ ] Common-part checklist is complete (see verify.md)
-- [ ] Printable parts: wall, gap, and bed chamfer follow print.md; **split joints** are derived from host wall `T` (print.md Joints), not extra knobs; the reply **states one piece (no split) or Print N×** — do not omit the one-piece line
-- [ ] **Few knobs** — `extract-params.py` prints **no `warnings`**. If it warns, fix (hide / derive / move formulas into the module / English groups) **before** six views. Do not mark Done with warnings present. `validate.py` does not enforce this. Default panel = allow-list; mate holders expose the object’s sizes only
+- [ ] Printable parts: wall, gap, and bed chamfer follow print.md; **split joints** are derived from host wall `T` (print.md Joints), not extra knobs; split tokens share the article envelope (no `base_l` + `lid_l`); the reply **states one piece (no split) or Print N×** — do not omit the one-piece line
+- [ ] **Few knobs** — `extract-params.py` prints **no `warnings`**. If it warns, fix (hide / derive / move formulas into the module / English groups) **before** six views. Do not mark Done with warnings present. `validate.py` does not enforce this. Default panel = allow-list; mate holders expose the object’s sizes only; split of one article = envelope + `wall` + `part`
 - [ ] **The user can open the file in the OpenSCAD desktop app.** Prefer no third-party `use` / `include` (inlined `examples/` MIT modules count as self-contained). If BOSL2 is required, note `// requires: BOSL2` in the header and say the GUI needs it installed. Customizer panel should show the intended knobs ([Hidden] collapsed). **Default action: run `python3 "$SKILL_ROOT/scripts/open-gui.py" model.scad` and confirm it launched.** Skip only when the user said headless / no GUI.
 - [ ] **User accepted the result** — after opening the GUI, ask in the user’s language whether they can see it and whether the shape looks right. Do not mark Done until they confirm.
 
