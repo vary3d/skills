@@ -2,6 +2,10 @@
 
 Skill versions live in each `SKILL.md` (`version` and `metadata.version`) and the sibling `VERSION` file. This file summarizes user-visible changes.
 
+## vary3d-package 1.24 / openscad-customizer 1.28 — 2026-09-06
+
+- Split `part` comment is required: `All = assembled preview. Pick a kind to export.` (format-agnostic; rewrite STL-only copy). `extract-params.py` warns if that line is missing. Packaging default: switch each token and export by hand; do not batch-export or add a preset per token. `part="all"` stays assembled preview / cover only.
+
 ## vary3d-package 1.23 — 2026-09-06
 
 - `generate-readme.py` writes `DOCUMENT.md` (Import Documentation, GFM images) and a derived GitHub `README.md` (hero/Models `width="640"`, presets `width="480"`; no duplicate entry cover). Import reads only `DOCUMENT.md`. Print lives in DOCUMENT `## Print`.

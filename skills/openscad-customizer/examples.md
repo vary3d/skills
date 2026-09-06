@@ -77,7 +77,7 @@ User: “Box with a lid, 80×60×40, no supports if we can split.”
 4. Write `models/split-box/model.scad`: `part = "all"; // [all:All, base:Base, lid:Lid]`. No `show_base` / `show_lid`. `lid_geom()` only for `all`; `part="lid"` calls `lid_print()` at the origin.
 5. `validate.py --expect … --tol 1` on the default file (`all`). **Skip** `--single-body` on `all`. Then `--single-body --openscad-arg=-D --openscad-arg='part="base"'` and the same for `lid`.
 6. Six views of the assembly; iso of each token in print pose. **2D section through the rim** (`section.py --plane xz --2d`) — do not use a 3D iso cutaway to judge the joint.
-7. Deliver: Print 1× base, 1× lid; do not export STL from `all`.
+7. Deliver: Print 1× base, 1× lid; do not export from `all`.
 
 ## Simple — funnel (user asked to split; stay one piece)
 

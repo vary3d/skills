@@ -110,15 +110,17 @@ Do not run a mesh “chopper”. Splits are CSG in the `.scad` (modules + `part`
 
 ## `part` enum (2–4 printable meshes)
 
-OpenSCAD exports **whatever is currently visible** as one file. There is no assembly tree. For 2–4 **kinds** of STL, expose one enum — not a part tree.
+OpenSCAD exports **whatever is currently visible** as one file. There is no assembly tree. For 2–4 **kinds** of mesh, expose one enum — not a part tree.
 
 ```openscad
 /* [Rendering] */
 
-// Which bodies to build. All = assembled preview; pick one kind to export STL.
 // Put this assignment FIRST in the file — before Dimensions and color.
+// All = assembled preview. Pick a kind to export.
 part = "all"; // [all:All, base:Base, lid:Lid]
 ```
+
+The last `//` line above `part` is the panel text. It **must** be `All = assembled preview. Pick a kind to export.` — not STL-only. The user switches a token and exports (OpenSCAD File → Export, or the site STL / 3MF). `extract-params.py` warns if that comment is missing.
 
 | Rule | Detail |
 |---|---|
@@ -207,7 +209,7 @@ Copy the same sentence into `plan.json` `notes` with the cut plane. Do **not** a
 
 ## Export
 
-Do **not** export STL while `part="all"` and call that the print file. Change `part` (or pass `-D`) per kind:
+Do **not** export while `part="all"` and call that the print file. Change `part` (or pass `-D`) per kind:
 
 ```bash
 openscad -o base.stl -D 'part="base"' model.scad

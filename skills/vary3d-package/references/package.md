@@ -6,6 +6,12 @@ Output a `packages/<slug>/` tree. **This file plus [examples/m5-flange/](../exam
 
 Minimum for the site panel: `/* [Group] */` groups, a description line above each exposed assignment, same-line `// [min:step:max]` or `// [value:Label]` enums. Keep existing Labels. New labels default to English unless the user asked otherwise. Machine enum values stay as they were.
 
+If `part` exists, its description line is **required** and must be exactly this idea (rewrite STL-only copy):
+
+`All = assembled preview. Pick a kind to export.`
+
+Do not invent `part`. See [print.md](print.md).
+
 ## Listing (`info.json`)
 
 `format` must be `vary3d.info`, `version` `1`. `sourceLocale` matches the listing copy (`en` by default).
@@ -25,7 +31,7 @@ Forks: `originType` `fork` plus `sourceUrl` / `originalAuthor` / `sourceLicense`
 
 **Never invent `parentModelId`.** Omit it unless it is a real Vary3D model id you already have.
 
-Printable parts add a DOCUMENT `## Print` section (Import maps DOCUMENT.md to Docs) — see [print.md](print.md). If the `.scad` already has a `part` enum, keep it and put Print N× in that section; do not invent a split or replace `part` with `show_*` booleans.
+Printable parts add a DOCUMENT `## Print` section (Import maps DOCUMENT.md to Docs) — see [print.md](print.md). If the `.scad` already has a `part` enum, keep it, force the `part` comment above, and put Print N× in that section; do not invent a split or replace `part` with `show_*` booleans. Default print path is switch-`part`-and-export, not slicing `all`.
 
 **Do not write:** `print` (`validate-info.py` rejects it — use DOCUMENT `## Print`); server-assigned fields such as `id`, `userId`, object-storage paths, `status` / `visibility`, `engineVersion`, translated-copy fields (`*I18n`), counts, or `__vary`.
 

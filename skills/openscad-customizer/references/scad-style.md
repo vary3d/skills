@@ -117,8 +117,8 @@ Token names match the module (`base`, `lid`, `leg`). Labels are English. Geometr
 ```openscad
 /* [Rendering] */
 
-// All = assembled preview. Pick a kind to export STL (slice extras in the slicer).
 // Put this assignment FIRST in the file — before Dimensions and color.
+// All = assembled preview. Pick a kind to export.
 part = "all"; // [all:All, base:Base, lid:Lid]
 
 // Hull render color.

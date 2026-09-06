@@ -113,7 +113,7 @@ python3 "$SKILL_ROOT/scripts/generate-readme.py" packages/<slug>
 
 Preset covers use OpenSCAD `-D` on the preview entry so Global keys in `params.scad` apply. First cover render may install a **Vary3D** color scheme locally so uncolored faces match the site (`#2A9D90`). Open `cover.png`. If there are many preset covers, open at least the default plus the two that change the silhouette most. `DOCUMENT.md` is Import Documentation; `README.md` is the GitHub view. `validate-info.py` does not require either file.
 
-Printable parts: `## Print` in `DOCUMENT.md` (settings, orientation, why). Split models: include Print N× per `part` token; `all` is preview only; no preset per token. See [references/print.md](../skills/vary3d-package/references/print.md).
+Printable parts: `## Print` in `DOCUMENT.md` (settings, orientation, why). Split models: switch `part` and export each token by hand; Print N× per token; `all` is preview only; `part` comment must be `All = assembled preview. Pick a kind to export.`; no preset per token. See [references/print.md](../skills/vary3d-package/references/print.md).
 
 Forks: keep upstream `LICENSE`; write `ORIGIN.md`; fill source fields. Original tree `git status` stays clean unless the user asked in-place.
 

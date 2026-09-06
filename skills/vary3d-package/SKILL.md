@@ -6,12 +6,12 @@ description: >-
   geometry. Use when the user asks to import to Vary3D, Import from folder,
   publish a model folder, info.json, variants.json, Forked from,
   or normalize an existing .scad into the spec layout.
-version: "1.23"
+version: "1.24"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH. First cover render may write a Vary3D color scheme into the local OpenSCAD config directory.
 metadata:
   author: vary3d
-  version: "1.23"
+  version: "1.24"
   related_skills: vary3d/skills@openscad-customizer
 ---
 
@@ -77,7 +77,7 @@ Customizer comment minimum: [package.md](references/package.md#customizer-commen
 ## Rules
 
 1. **Source tree is read-only** unless the user said “edit in place”. Copy the include/use closure into `packages/<slug>/`. Do not modify `models/` by default.
-2. **Do not change the outside shape.** Compare bbox with `validate.py --expect … --tol 1` (1 mm). If `volume_mm3` moves by more than about 5%, you redesigned it — go back. Wrapping parts in `color()` is allowed. **Do not invent a split** or a `part` enum. If the source already has `part = "all"`, keep it — do not convert it to `show_*` booleans. Do not add `variants.json` presets that only switch `part`.
+2. **Do not change the outside shape.** Compare bbox with `validate.py --expect … --tol 1` (1 mm). If `volume_mm3` moves by more than about 5%, you redesigned it — go back. Wrapping parts in `color()` is allowed. **Do not invent a split** or a `part` enum. If the source already has `part = "all"`, keep it — do not convert it to `show_*` booleans. Do not add `variants.json` presets that only switch `part`. Force the `part` comment: `All = assembled preview. Pick a kind to export.` Default print path is switch each token and export by hand — not `all`.
 3. Entry file in the copy is `model.scad`. If other files `include` the old name, add one forwarding `include <old-entry.scad>` instead of rewriting every path. **`params.scad` only for a kit: complementary pieces on different files that must share wall / footprint / clearance.** Kit test: opening A cannot export B’s printable piece (`box.scad` has no lid). Then root `params.scad` plus `include <params.scad>` in those roots (see package.md). **Do not** add it when one file already exports both mating pieces via `part` (a tray file with `part=box` is a split, not a kit), for extra Models that are each a full product, a single file, unrelated files, or `geometry.scad` / library subdirs.
 4. Listing strings (`name`, `description`, tags, variant titles) default to **English**. Switch only if the user explicitly asked. Chat language does not count. Set `sourceLocale` to match. The site translates after publish. **`description`:** ≤800; cards show the first sentence or two, so lead with object + mate/feature. More sentences are fine; print notes go in DOCUMENT `## Print`. See [package.md](references/package.md#description). **Tags: about 3, never more than 5.** Pick 0–1 from each axis — **object** (what it is), **mate** (what it fits), **feature** (what makes it different), **scene** (who it is for, only if the object name is generic). Do not repeat the category; do not pad with `openscad` / `parametric` / `diy`. See [package.md](references/package.md#tags).
 5. Keep existing Customizer labels. Do not rewrite them to English. New labels you add are English unless the user asked otherwise. Machine enum values stay as they were.
@@ -145,7 +145,7 @@ python3 "$SKILL_ROOT/scripts/generate-readme.py" packages/<slug>
 - [ ] Extra build roots have `covers/<stem>.png` and were opened
 - [ ] `generate-readme.py` wrote `DOCUMENT.md` and `README.md` (Files buckets; fork vs original Source; Global three-surface note only when `params.scad` exists)
 - [ ] Forks: `LICENSE` + `ORIGIN.md` + source fields
-- [ ] Printable parts: DOCUMENT `## Print` (split: Print N× per `part` token; `all` is preview only; no preset per token)
+- [ ] Printable parts: DOCUMENT `## Print` (split: switch `part` and export each token by hand; Print N×; `all` is preview only; `part` comment is the required sentence; no preset per token)
 - [ ] Original tree `git status` is clean (unless in-place mode)
 - [ ] No STL entry, no generator scratch in the folder
 

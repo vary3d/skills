@@ -101,7 +101,7 @@ python3 "$SKILL_ROOT/scripts/section.py" model.scad --check-floating \
   --openscad-arg=-D --openscad-arg='part="lid"'
 ```
 
-Do not export STL from `part="all"` as the print file.
+Do not export from `part="all"` as the print file.
 
 If the CLI can render, six views are required (simple and complex). If it cannot, state “no images” and why.
 

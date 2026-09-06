@@ -8,12 +8,12 @@ description: >-
   STL, 3D-printable parts, brackets, enclosures, flanges, mounts, washers,
   or an in-place edit of an existing .scad. Also when they attach a product
   photo, CAD three-view, screenshot, or engineering drawing to copy.
-version: "1.27"
+version: "1.28"
 license: MIT
 compatibility: Requires OpenSCAD CLI and Python 3. Works on macOS, Linux, and native Windows (no WSL needed). Windows users install OpenSCAD from the site or winget, then set OPENSCAD if it is not on PATH.
 metadata:
   author: vary3d
-  version: "1.27"
+  version: "1.28"
   related_skills: vary3d/skills@vary3d-package
 ---
 
@@ -131,7 +131,7 @@ Do not write geometry on complex without Brief/Plan. Do not fake JSON on simple.
 3. Comments, group titles, slider labels, and in-module notes are **English** unless the user explicitly asked for another language. Chat language does not count.
 4. Geometry lives in a `module`. Call the main module once at the end of the file. Helpers with no defaulted args must not be the first `module` in the file.
 5. Color parts with `color()`. Color parameters end with `_color`. Give a literal default. A mid-tone hex (not near-white / near-black) reads well on a light preview. No `undef` / empty string.
-6. **When there are 2–4 printable meshes of one article:** one `part` enum, default `"all"` (see [print.md](references/print.md) and [scad-style.md](references/scad-style.md)). Put `part` **first** in the Customizer order — it is the first top-level assignment, before Dimensions and color — so the user picks the part before tweaking its sizes. Do not add `show_<part>` booleans. Feature toggles (`show_honeycomb`) and `cutaway` stay separate. One-piece models: no `part` knob. Tokens **share** the article envelope — do not add per-body size knobs (`base_l` + `lid_l`). Extra build-root `.scad` files for a second **complete product**. Write `params.scad` at pack time only if those roots are complementary pieces that cannot export each other (kit test). Default: no `params.scad`.
+6. **When there are 2–4 printable meshes of one article:** one `part` enum, default `"all"` (see [print.md](references/print.md) and [scad-style.md](references/scad-style.md)). Put `part` **first** in the Customizer order — it is the first top-level assignment, before Dimensions and color — so the user picks the part before tweaking its sizes. The comment immediately above `part` **must** be `All = assembled preview. Pick a kind to export.` Default: switch a token and export by hand; do not export `all` as the print file. Do not add `show_<part>` booleans. Feature toggles (`show_honeycomb`) and `cutaway` stay separate. One-piece models: no `part` knob. Tokens **share** the article envelope — do not add per-body size knobs (`base_l` + `lid_l`). Extra build-root `.scad` files for a second **complete product**. Write `params.scad` at pack time only if those roots are complementary pieces that cannot export each other (kit test). Default: no `params.scad`.
 7. Fillets in the 2D profile (`offset` / rounded polygon). If `minkowski` will round the bed face, say so.
 8. **No `models/<slug>/lib/`. No `use <MCAD/…>`.** Prefer primitives. Inline marked MIT modules from `examples/` (gears, trapezoid thread, polyhole, teardrop, self-tap) — do not live-`use` those files. Table: [scad-style.md](references/scad-style.md) Libraries. BOSL2 only if the user asked or the file already has `use <BOSL2>`; probe with `validate.py` first. If missing: **stop**, show the clone command for the **user** to run (do not run git clone yourself), then wait. Then `// requires: BOSL2` in the header. Site preview may not load it. `validate.py` fails on `Can't open library` even when leftover geometry still compiles.
 9. `$fa = 4; $fs = 0.4;` (or `$fn` per feature). Units mm.

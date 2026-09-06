@@ -12,7 +12,16 @@ For printable parts, write a `## Print` section in `DOCUMENT.md` (Import maps th
 
 `generate-readme.py` **preserves** this section when it regenerates listing facts. If it is missing, add it after generate (printable parts). Omit the section for non-printable sculpture.
 
-If the source has a `part` enum (split for print): keep it. Orientation / why name each printable token and the count (`Print 1× base, 1× lid`). `part="all"` is assembled preview only — not the print export. Do not invent a split when packaging. Do not add `variants.json` presets that only switch `part`. Listing **`cover.py`** uses the file default (`all`) so the card shows the assembly; do not render the cover from a single token unless the user asked.
+If the source has a `part` enum (split for print): keep it. **Default workflow:** the user switches each printable token in the panel and exports that mesh by hand (site STL / 3MF, or OpenSCAD File → Export). Do not batch-export a zip of tokens while packaging. Orientation / why name each printable token and the count (`Print 1× base, 1× lid`). `part="all"` is assembled preview only — not the print export. Do not invent a split when packaging. Do not add `variants.json` presets that only switch `part`. Listing **`cover.py`** uses the file default (`all`) so the card shows the assembly; do not render the cover from a single token unless the user asked.
+
+The description line immediately above `part` **must** be that workflow, format-agnostic:
+
+```openscad
+// All = assembled preview. Pick a kind to export.
+part = "all"; // [all:All, base:Base, lid:Lid]
+```
+
+Rewrite a missing, vague, or STL-only line. `extract-params.py` warns if the comment omits “assembled preview” / “Pick a kind” / “export”. That line is what the site panel and DOCUMENT parameter table show.
 
 Assembly steps MAY continue under the same `## Print` heading.
 

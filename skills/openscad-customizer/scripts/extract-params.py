@@ -362,6 +362,15 @@ def style_warnings(params: list[dict], head: str) -> list[str]:
                 + ", ".join(bad)
                 + "; one-piece files must not Customizer-assign part for a ghost mate / section / interference"
             )
+        desc = (p.get("description") or "").strip().lower()
+        if (
+            "assembled preview" not in desc
+            or "pick a kind" not in desc
+            or "export" not in desc
+        ):
+            out.append(
+                "part comment must be: All = assembled preview. Pick a kind to export."
+            )
         break
     return out
 
