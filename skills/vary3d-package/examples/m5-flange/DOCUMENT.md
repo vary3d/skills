@@ -33,7 +33,7 @@ Libraries: none
 
 Clearance for M5 hardware.
 
-<img src="covers/m5.png" alt="M5" width="480">
+![M5](covers/m5.png)
 
 | Name | Value |
 |---|---|
@@ -44,7 +44,7 @@ Clearance for M5 hardware.
 
 Clearance for M4 hardware.
 
-<img src="covers/m4.png" alt="M4" width="480">
+![M4](covers/m4.png)
 
 | Name | Value |
 |---|---|

@@ -2,7 +2,7 @@
 
 > Human guide. Runtime instructions: [skills/openscad-customizer/SKILL.md](../skills/openscad-customizer/SKILL.md).
 
-Write and **verify** parametric OpenSCAD for the **desktop app**. Default output is `models/<slug>/model.scad`. This skill does not upload models and does not write `info.json`, covers, `README.md`, or `packages/`. For [vary3d.com](https://vary3d.com) Import from folder, use [vary3d-package](vary3d-package.md) after you have a working `.scad`.
+Write and **verify** parametric OpenSCAD for the **desktop app**. Default output is `models/<slug>/model.scad`. This skill does not upload models and does not write `info.json`, covers, `DOCUMENT.md`, `README.md`, or `packages/`. For [vary3d.com](https://vary3d.com) Import from folder, use [vary3d-package](vary3d-package.md) after you have a working `.scad`.
 
 Install:
 
@@ -15,7 +15,7 @@ npx skills add vary3d/skills@openscad-customizer
 | Use this skill | Not this skill |
 |---|---|
 | “Design an M5 flange” | “Pack this flange for Vary3D import” → vary3d-package |
-| Parametric `.scad` + Customizer sliders | `info.json`, `variants.json`, cover PNGs, package `README.md` |
+| Parametric `.scad` + Customizer sliders | `info.json`, `variants.json`, cover PNGs, package `DOCUMENT.md` / `README.md` |
 | Compile, bbox, six views, open GUI | Publish or review on the site |
 
 Requires **OpenSCAD CLI** and **Python 3** (macOS, Linux, native Windows — no WSL).

@@ -1,6 +1,6 @@
-# Print notes in `README.md`
+# Print notes in `DOCUMENT.md`
 
-For printable parts, write a `## Print` section in the package README (Import maps the whole README to Documentation). Do not put `print` on `info.json` — `validate-info.py` rejects that key. Do not dump every slicer setting, and do not leave notes only in chat.
+For printable parts, write a `## Print` section in `DOCUMENT.md` (Import maps that file to Documentation). Do not put `print` on `info.json` — `validate-info.py` rejects that key. Do not dump every slicer setting, and do not leave notes only in chat.
 
 ```markdown
 ## Print
@@ -31,4 +31,4 @@ Load-bearing: 3–4 walls, 25–40% infill, maybe PETG. Vase: 1 wall. Tall skinn
 
 Do not promise food-contact or IP waterproof ratings unless the user only wants splash resistance.
 
-This skill does not redesign for printability. If the part cannot print as-is, say so in README `## Print` / the reply; do not silently thicken walls (that changes shape — see [normalize.md](normalize.md)).
+This skill does not redesign for printability. If the part cannot print as-is, say so in DOCUMENT `## Print` / the reply; do not silently thicken walls (that changes shape — see [normalize.md](normalize.md)).

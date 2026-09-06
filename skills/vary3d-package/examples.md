@@ -14,7 +14,7 @@ User: “Make this `flange.scad` importable on Vary3D, plus M5 and M4 presets.�
 6. `variants.json` with M5 / M4 (`bolt_clearance_dia` + `pcd`). `bolt_clearance_dia` is Hidden on the default panel; presets may still override it.
 7. `validate.py packages/m5-flange/model.scad --expect … --tol 1` using the baseline size.
 8. `cover.py` then `cover-variants.py` (preset `-D` plus extra build roots). `validate-variants.py`. Open covers.
-9. `generate-readme.py` (original Source; no Global bucket unless `params.scad` exists). Add README `## Print` if generate did not preserve one. Leave `models/` (or the original `flange.scad`) untouched.
+9. `generate-readme.py` (original Source; no Global bucket unless `params.scad` exists). Add DOCUMENT `## Print` if generate did not preserve one. Leave `models/` (or the original `flange.scad`) untouched.
 
 ## Fork from a public model
 

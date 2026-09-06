@@ -2,6 +2,10 @@
 
 Skill versions live in each `SKILL.md` (`version` and `metadata.version`) and the sibling `VERSION` file. This file summarizes user-visible changes.
 
+## vary3d-package 1.23 — 2026-09-06
+
+- `generate-readme.py` writes `DOCUMENT.md` (Import Documentation, GFM images) and a derived GitHub `README.md` (hero/Models `width="640"`, presets `width="480"`; no duplicate entry cover). Import reads only `DOCUMENT.md`. Print lives in DOCUMENT `## Print`.
+
 ## openscad-customizer 1.27 / vary3d-package 1.22 — 2026-09-02
 
 - Cover fill default is 80% of the limiting side (listing-card size). `OPENSCAD_COVER_FILL` still overrides.

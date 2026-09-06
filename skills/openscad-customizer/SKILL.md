@@ -53,7 +53,7 @@ models/<slug>/
 ```
 
 - Entry file is **`model.scad`**. Do not scatter a lone `.scad` at the repo root.
-- Do **not** write `packages/`, `info.json`, covers, or `README.md` — that is **vary3d-package**.
+- Do **not** write `packages/`, `info.json`, covers, `DOCUMENT.md`, or `README.md` — that is **vary3d-package**.
 - Small-edit: change the existing file in place (wherever it already lives).
 
 A sample part lives at [examples/m5-flange.scad](examples/m5-flange.scad) (copy into `models/<slug>/model.scad` for a user project). MIT modules to **inline** (do not `use` the example file): [examples/spur-gear.scad](examples/spur-gear.scad), [examples/trap-thread.scad](examples/trap-thread.scad), [examples/polyhole.scad](examples/polyhole.scad), [examples/teardrop.scad](examples/teardrop.scad), [examples/selftap.scad](examples/selftap.scad).

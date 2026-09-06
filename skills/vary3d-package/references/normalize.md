@@ -38,7 +38,7 @@ Edit the original tree only when the user said “in place”, and say what you 
    - Rename knobs and matching preset keys in the same edit
    - If a `part` enum exists, move it to the **first** top-level assignment (before Dimensions and color) so the site panel lists the part selector first. This is an order change, not a shape change
    - Do **not** rewrite existing local-language slider copy to English; the site translates after publish
-6. **Listing files:** `info.json` (forks fill origin fields; never invent `parentModelId`), `cover.png`; ≥2 useful presets → `variants.json` + preset covers. `generate-readme.py` for `README.md` (GitHub + Import Docs). If an old variants file exists, point `files` keys at `model.scad` and rename `params` to the new top-level names. Do not write `info.print`.
+6. **Listing files:** `info.json` (forks fill origin fields; never invent `parentModelId`), `cover.png`; ≥2 useful presets → `variants.json` + preset covers. `generate-readme.py` for `DOCUMENT.md` (Import Docs) and derived `README.md` (GitHub). If an old variants file exists, point `files` keys at `model.scad` and rename `params` to the new top-level names. Do not write `info.print`.
 7. **Libraries:** keep `use` / `include` the source needs. Comment `// requires: BOSL2` (or the library name). Inlined MIT gear/thread modules need no extra files. Site preview may not load BOSL2. `validate.py` fails if a `use` is missing.
 8. **Do not write brief/plan** — those belong to geometry generation.
 
@@ -49,5 +49,5 @@ Edit the original tree only when the user said “in place”, and say what you 
 - [ ] `extract-params.py` lists only intended knobs and prints **no `warnings`** (count ceilings, deny-list names, file-scope formulas). Hiding a knob, switching to `"yes"`/`"no"` enums, or adding a missing `*_color` is **not** a shape change
 - [ ] `validate-info.py` (and `validate-variants.py` if presets)
 - [ ] `cover.png` (and preset covers) opened
-- [ ] `README.md` generated
+- [ ] `DOCUMENT.md` and `README.md` generated
 - [ ] Original tree `git status` clean (unless in-place)

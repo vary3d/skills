@@ -28,7 +28,7 @@ One place for the rules scattered across this file, [scad-style.md](scad-style.m
 | Do not expose | `rabbet_h`, `rabbet_w`, `pin_d`, `joint_depth`, `lip_h`, `lip_w` on the default panel (`extract-params.py` warns) |
 | Verify | bbox on `part="all"` (assembled). `--single-body` **per printable token** via `-D part="lid"`; **not** on `all`; do not `union()` the assembly to fake one body |
 | Export | `openscad -o base.stl -D 'part="base"' model.scad` per kind. Quantity is for the slicer |
-| Delivery | Reply + README `## Print`: `Print N× <token>`; `all` is preview only. Never a `variants.json` preset per token |
+| Delivery | Reply + DOCUMENT `## Print`: `Print N× <token>`; `all` is preview only. Never a `variants.json` preset per token |
 
 ## Structure
 
@@ -129,7 +129,7 @@ part = "all"; // [all:All, base:Base, lid:Lid]
 | Labels | English: `All`, `Base`, `Lid` |
 | One-piece | **Do not** add `part` |
 | Instances | Count **kinds**, not copies. `all` places every instance. `part="leg"` draws **one** copy in **print pose** at the origin |
-| Quantity | Delivery lines and packaged README `## Print`: `Print 4× leg`. Not `variants.json` |
+| Quantity | Delivery lines and packaged DOCUMENT `## Print`: `Print 4× leg`. Not `variants.json` |
 | Mirror that cannot stack | Two tokens, or a `side` enum — not four instance names |
 | Hardware | Off-the-shelf screws stay out of the dropdown |
 
@@ -227,7 +227,7 @@ Always:
 - Why: why that pose or recipe
 - **One piece or split** — say it even when you did not split. One-piece: `One piece; no split.` plus the wall/bed reason. Split: `Print N× <token>` for each kind; `part="all"` is preview only (not a print export)
 
-If the user later packs for the site, those lines map to README `## Print` (`settings` / `orientation` / `why` — put counts or “One piece; no split” in orientation or why).
+If the user later packs for the site, those lines map to DOCUMENT `## Print` (`settings` / `orientation` / `why` — put counts or “One piece; no split” in orientation or why).
 
 Examples of when to leave the defaults:
 

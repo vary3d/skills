@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Write packages/<slug>/README.md from listing JSON, knobs, and cover PNGs.
+"""Write packages/<slug>/DOCUMENT.md and a GitHub README.md.
 
-Does not invent blurb. Import maps this file to site Documentation.
-Regenerating preserves an existing ## Print section.
+DOCUMENT.md is the long-form listing page (GFM images). Import maps it to
+site Documentation. README.md is a derived GitHub view (HTML image widths).
+Regenerating preserves an existing ## Print section from DOCUMENT.md, or
+from README.md when DOCUMENT.md is not there yet.
 """
 from __future__ import annotations
 
@@ -13,6 +15,9 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+HERO_WIDTH = 640
+PRESET_WIDTH = 480
 
 
 def _load(name: str, filename: str):
@@ -112,11 +117,14 @@ def copyright_line(license_path: Path) -> str:
 
 
 def existing_print(pkg: Path) -> str:
-    readme = pkg / "README.md"
-    if not readme.is_file():
-        return ""
-    match = PRINT_SECTION.search(readme.read_text(encoding="utf-8"))
-    return match.group(1).rstrip() if match else ""
+    for name in ("DOCUMENT.md", "README.md"):
+        path = pkg / name
+        if not path.is_file():
+            continue
+        match = PRINT_SECTION.search(path.read_text(encoding="utf-8"))
+        if match:
+            return match.group(1).rstrip()
+    return ""
 
 
 def iter_variant_items(data: dict):
@@ -171,6 +179,15 @@ def file_image(pkg: Path, rel: str, entry: str) -> str:
     return ""
 
 
+def gfm_image(alt: str, src: str) -> str:
+    return f"![{alt}]({src})"
+
+
+def html_image(alt: str, src: str, width: int) -> str:
+    safe = alt.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+    return f'<img src="{src}" alt="{safe}" width="{width}">'
+
+
 def source_section(info: dict, origin: dict[str, str], has_libs: bool) -> str:
     origin_type = info.get("originType") or "original"
     this_folder = origin.get("this folder") or ""
@@ -210,20 +227,31 @@ def source_section(info: dict, origin: dict[str, str], has_libs: bool) -> str:
     return "\n".join(lines)
 
 
-def model_block(pkg: Path, path: Path, entry: str, package_name: str) -> list[str]:
+def model_block(
+    pkg: Path,
+    path: Path,
+    entry: str,
+    package_name: str,
+    *,
+    github: bool,
+    skip_entry_cover: bool,
+) -> list[str]:
     rel = path.name
     img = file_image(pkg, rel, entry)
     title = package_name if rel == entry else title_from_stem(path.stem)
     block = [f"#### {title}", "", f"`{rel}`", ""]
-    if img:
-        block += [f"![{title}]({img})", ""]
+    if img and not (skip_entry_cover and rel == entry and img == "cover.png"):
+        if github:
+            block += [html_image(title, img, HERO_WIDTH), ""]
+        else:
+            block += [gfm_image(title, img), ""]
     vis = visible_params(path)
     if vis:
         block += [param_table(vis, with_range=True), ""]
     return block
 
 
-def build() -> str:
+def build(*, github: bool) -> str:
     if len(sys.argv) < 2:
         print("usage: generate-readme.py packages/<slug>/", file=sys.stderr)
         return ""
@@ -241,10 +269,14 @@ def build() -> str:
     roots = [pkg / entry] if (pkg / entry).is_file() else []
     roots.extend(extra_roots(pkg, entry))
     libs = library_entries(pkg, origin)
+    has_hero = (pkg / "cover.png").is_file()
 
     parts: list[str] = [f"# {name}", ""]
-    if (pkg / "cover.png").is_file():
-        parts += [f"![{name}](cover.png)", ""]
+    if has_hero:
+        if github:
+            parts += [html_image(name, "cover.png", HERO_WIDTH), ""]
+        else:
+            parts += [gfm_image(name, "cover.png"), ""]
     if description:
         parts += [description, ""]
 
@@ -266,7 +298,14 @@ def build() -> str:
         if path.name in seen:
             continue
         seen.add(path.name)
-        model_bits += model_block(pkg, path, entry, name)
+        model_bits += model_block(
+            pkg,
+            path,
+            entry,
+            name,
+            github=github,
+            skip_entry_cover=github and has_hero,
+        )
     if model_bits:
         file_parts += ["### Models", ""]
         if len(roots) > 1:
@@ -296,7 +335,10 @@ def build() -> str:
             if desc:
                 parts += [desc, ""]
             if cover:
-                parts += [f"![{title}]({cover})", ""]
+                if github:
+                    parts += [html_image(title, cover, PRESET_WIDTH), ""]
+                else:
+                    parts += [gfm_image(title, cover), ""]
             if params:
                 rows = [{"name": k, "value": v} for k, v in params.items()]
                 parts += [param_table(rows, with_range=False), ""]
@@ -318,13 +360,16 @@ def build() -> str:
 
 
 def main() -> int:
-    text = build()
-    if not text:
+    document = build(github=False)
+    if not document:
         return 2
     pkg = Path(sys.argv[1]).resolve()
-    out = pkg / "README.md"
-    out.write_text(text, encoding="utf-8")
-    print(out)
+    doc_out = pkg / "DOCUMENT.md"
+    doc_out.write_text(document, encoding="utf-8")
+    print(doc_out)
+    readme_out = pkg / "README.md"
+    readme_out.write_text(build(github=True), encoding="utf-8")
+    print(readme_out)
     return 0
 
 
